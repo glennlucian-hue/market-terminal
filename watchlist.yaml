@@ -1,0 +1,108 @@
+# ==========================================================================
+#  WATCHLIST – hier legst du fest, welche Werte auf der Website erscheinen.
+# ==========================================================================
+#
+#  So fügst du einen Wert hinzu:
+#    1. Suche den Wert auf https://finance.yahoo.com
+#    2. Das Kürzel steht in Klammern hinter dem Namen, z. B. "Nestlé S.A. (NESN.SW)"
+#    3. Kopiere einen bestehenden Eintrag (beide Zeilen) und passe "name" und "ticker" an.
+#
+#  Wichtig:
+#    - Die Einrückung (Leerzeichen am Zeilenanfang) muss genau stimmen.
+#      Verwende Leerzeichen, KEINE Tabulator-Taste.
+#    - Ticker immer in Anführungszeichen schreiben, z. B. "^GSPC".
+#    - Zeilen, die mit # beginnen, sind Kommentare und werden ignoriert.
+#
+#  Optionale Angaben pro Wert:
+#    art: rendite   -> für Zinsen: Veränderungen in Basispunkten (bp) statt Prozent
+#    quelle: fred   -> Daten von der US-Notenbank St. Louis (FRED) statt Yahoo.
+#                      Der Ticker ist dann die FRED-Serien-ID, z. B. "DGS10".
+#    band: true     -> Wert erscheint im Kursband oben auf jeder Seite
+# ==========================================================================
+
+einstellungen:
+  # Wie lange (in Stunden) geladene Kurse wiederverwendet werden.
+  cache_stunden: 4
+
+gruppen:
+  - name: Indizes
+    werte:
+      - name: S&P 500
+        ticker: "^GSPC"
+        band: true
+      - name: Nasdaq 100
+        ticker: "^NDX"
+        band: true
+      - name: SMI
+        ticker: "^SSMI"
+        band: true
+      - name: Euro Stoxx 50
+        ticker: "^STOXX50E"
+        band: true
+      - name: VIX
+        ticker: "^VIX"
+        band: true
+
+  - name: Zinsen & Devisen
+    werte:
+      - name: US-Rendite 2 J.
+        ticker: "DGS2"
+        quelle: fred
+        art: rendite
+      - name: US-Rendite 10 J.
+        ticker: "DGS10"
+        quelle: fred
+        art: rendite
+        band: true
+      - name: Dollar-Index
+        ticker: "DX-Y.NYB"
+      - name: USD/CHF
+        ticker: "CHF=X"
+        band: true
+      - name: EUR/CHF
+        ticker: "EURCHF=X"
+        band: true
+
+  - name: Rohstoffe
+    werte:
+      - name: Brent
+        ticker: "BZ=F"
+        band: true
+      - name: WTI
+        ticker: "CL=F"
+      - name: Erdgas (Henry Hub)
+        ticker: "NG=F"
+      - name: Gold
+        ticker: "GC=F"
+        band: true
+      - name: Silber
+        ticker: "SI=F"
+      - name: Kupfer
+        ticker: "HG=F"
+
+  - name: Krypto
+    werte:
+      - name: Bitcoin
+        ticker: "BTC-USD"
+        band: true
+      - name: Ethereum
+        ticker: "ETH-USD"
+
+  - name: Aktien
+    werte:
+      - name: Nvidia
+        ticker: "NVDA"
+      - name: Microsoft
+        ticker: "MSFT"
+      - name: Alphabet
+        ticker: "GOOGL"
+      - name: Amazon
+        ticker: "AMZN"
+      - name: Meta
+        ticker: "META"
+      - name: Nestlé
+        ticker: "NESN.SW"
+      - name: Roche
+        ticker: "ROP.SW"   # Genussschein; bei Yahoo nicht mehr "ROG.SW"
+      - name: UBS
+        ticker: "UBSG.SW"

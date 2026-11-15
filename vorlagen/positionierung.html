@@ -1,0 +1,53 @@
+{% extends "basis.html" %}
+{% block inhalt %}
+<h1 class="seitentitel">Positionierung</h1>
+<p class="einleitung">Wie sind grosse Marktteilnehmer aufgestellt? Ein eigenes Trendfolge-Modell für CTAs
+und die offiziellen wöchentlichen Daten der US-Aufsicht CFTC.</p>
+
+<h2 class="rubrik">CTA-Modell: Trendfolger im S&P 500 <small>Modellschätzung</small></h2>
+{% if cta %}
+<div class="kennzahlen">
+  <div class="kennzahl"><div class="w {{ cta.aktuell | klasse }}">{{ '%+.0f' | format(cta.aktuell) }}%</div><div class="l">Geschätztes Exposure heute</div></div>
+  <div class="kennzahl"><div class="w">{{ '%+.0f' | format(cta.vor_woche) if cta.vor_woche is not none else '–' }}%</div><div class="l">vor einer Woche</div></div>
+  <div class="kennzahl"><div class="w">{{ '%.1f' | format(cta.vola) }}%</div><div class="l">Volatilität S&P 500 (1 Monat, annualisiert)</div></div>
+</div>
+<div class="raster">
+  {{ cta_chart }}
+  <figure class="figur breit">
+    <h4>Auslöser-Niveaus: wo kippen die Trendsignale?</h4>
+    <p class="figur-unter">Fällt der S&P 500 unter das Referenzniveau, dreht das Signal des jeweiligen Zeitfensters auf "verkaufen" (bzw. umgekehrt).</p>
+    <div class="tabelle-rahmen"><table class="tabelle">
+      <thead><tr><th>Zeitfenster</th><th>Signal (−1 bis +1)</th><th>Referenzniveau</th><th>Abstand zum Kurs</th><th class="links">Einordnung</th></tr></thead>
+      <tbody>{% for a in cta.ausloeser %}
+        <tr><td>{{ a.fenster }}</td><td class="{{ a.signal | klasse }} fett">{{ '%+.2f' | format(a.signal) }}</td>
+            <td>{{ a.referenz | zahl(0) }}</td><td class="{{ a.abstand | klasse }}">{{ '%+.1f' | format(a.abstand) }}%</td>
+            <td class="links grau">{{ 'Trend klar positiv' if a.signal > 0.5 else 'leicht positiv' if a.signal > 0 else 'leicht negativ' if a.signal > -0.5 else 'Trend klar negativ' }}{{ ' · nahe Auslöser!' if a.abstand | abs < 2 }}</td></tr>
+      {% endfor %}</tbody>
+    </table></div>
+    <figcaption>Quelle: Eigene Berechnung auf Basis Yahoo Finance (^GSPC)</figcaption>
+  </figure>
+</div>
+<div class="kasten"><p><b>Wie lesen?</b> Das Modell imitiert typische Trendfolger: Steigen die Kurse über mehrere Zeitfenster,
+bauen sie Long-Positionen auf, fallen sie, wird verkauft. Bei hoher Volatilität werden Positionen verkleinert.
+Liegt der Kurs nahe an einem Auslöser-Niveau, können kleine Bewegungen grössere Käufe oder Verkäufe auslösen.
+Echte CTA-Schätzungen von Banken (z. B. Goldman Sachs, Nomura) sind nicht öffentlich und können abweichen.</p></div>
+{% else %}
+<p class="vermerk">S&P-500-Daten nicht verfügbar – Modell kann nicht berechnet werden.</p>
+{% endif %}
+
+<h2 class="rubrik">CFTC: Commitments of Traders <small>wöchentlich, Stichtag Dienstag</small></h2>
+{% if cftc_tabelle %}
+<div class="tabelle-rahmen"><table class="tabelle">
+  <thead><tr><th>Markt</th><th class="links">Händlergruppe</th><th>Netto (Kontrakte)</th><th>Änderung zur Vorwoche</th><th>Perzentil 3 Jahre</th><th>Stand</th></tr></thead>
+  <tbody>{% for z in cftc_tabelle %}
+    <tr><td class="fett">{{ z.markt }}</td><td class="links">{{ z.gruppe }}</td>
+        <td class="{{ z.netto | klasse }}">{{ z.netto | zahl(0) }}</td>
+        <td class="{{ z.woche | klasse }}">{{ '%+d' | format(z.woche | int) }}</td>
+        <td>{{ '%.0f' | format(z.perzentil) if z.perzentil is not none else '–' }}</td>
+        <td class="grau">{{ z.stand | datum }}</td></tr>
+  {% endfor %}</tbody>
+</table></div>
+<p class="vermerk">Perzentil: 0 = so tief positioniert wie nie in den letzten 3 Jahren, 100 = so hoch wie nie. Extreme Werte (unter 10 / über 90) gelten oft als überdehnt.</p>
+{% endif %}
+<div class="raster">{{ cftc_sp }}{{ cftc_gold }}{{ cftc_wti }}</div>
+{% endblock %}

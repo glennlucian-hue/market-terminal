@@ -1,0 +1,41 @@
+{# Wiederverwendbare Bausteine für alle Seiten #}
+
+{% macro aenderung(x, einheit="%") -%}
+<td class="{{ x | klasse }}">{{ x | veraenderung(einheit) }}</td>
+{%- endmacro %}
+
+{% macro newsliste(artikel, mit_thema=False, kompakt=False) -%}
+{% if artikel %}
+<ul class="newsliste {{ 'kompakt' if kompakt }}">
+  {% for a in artikel %}
+  <li {% if mit_thema %}data-thema="{{ a.thema_id }}"{% endif %}>
+    <a href="{{ a.link }}" target="_blank" rel="noopener">{{ a.titel }}</a>
+    <div class="meta">{% if mit_thema %}<span class="thema">{{ a.thema }}</span>{% endif %}{{ a.quelle }}{% if a.vor %} · {{ a.vor }}{% endif %}</div>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="vermerk">Keine aktuellen Meldungen gefunden (oder News-Quelle nicht erreichbar).</p>
+{% endif %}
+{%- endmacro %}
+
+{% macro termintabelle(termine) -%}
+{% if termine %}
+<div class="tabelle-rahmen"><table class="tabelle">
+  <thead><tr><th>Tag</th><th class="links">Zeit</th><th class="links">Art</th><th class="links">Ereignis</th></tr></thead>
+  <tbody>
+  {% for t in termine %}
+  <tr class="{{ 'wichtig' if t.wichtig }}">
+    <td>{{ t.tag_text }}</td>
+    <td class="links grau">{{ t.zeit or "–" }}</td>
+    <td class="links"><span class="etikett {{ 'fed' if t.art in ('Fed-Rede', 'Anhörung') else 'fomc' if t.art == 'FOMC' else 'zahlen' if t.art == 'Quartalszahlen' }}">{{ t.art }}</span></td>
+    <td class="links umbruch"><b>{{ t.titel }}</b>{% if t.detail %}<span class="tk">{{ t.detail }}</span>{% endif %}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+<p class="vermerk">Zeiten in Schweizer Zeit. Gelb hinterlegt: besonders marktrelevant (Fed-Chair, FOMC, Nvidia).</p>
+{% else %}
+<p class="vermerk">Keine Termine im gewählten Zeitraum gefunden.</p>
+{% endif %}
+{%- endmacro %}

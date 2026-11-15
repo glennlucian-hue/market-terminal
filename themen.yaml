@@ -1,0 +1,77 @@
+# ==========================================================================
+#  THEMEN – Schwerpunkte mit eigenem Newsfeed (Seite "Themen" und "News")
+# ==========================================================================
+#
+#  Jedes Thema hat:
+#    id:            kurzer Name ohne Leerzeichen (nur für die Technik)
+#    titel:         Überschrift auf der Website
+#    beschreibung:  ein, zwei Sätze, worum es geht
+#    suchbegriffe:  Liste von Suchanfragen für Google News (Englisch liefert mehr).
+#                   Jeden Suchbegriff in einfache Anführungszeichen '...' setzen.
+#                   Tipps:  "genaue Phrase" in doppelten Anführungszeichen,  OR  für "oder".
+#    analyse:       (optional) eingebaute Charts/Tabellen zum Thema. Mögliche Werte:
+#                   fed, gold_btc, ki, hormuz, cta
+#
+#  Neues Thema hinzufügen: einen Block kopieren, id/titel/beschreibung/suchbegriffe
+#  anpassen, "analyse" weglassen. Fertig – beim nächsten Start gibt es den Newsfeed.
+# ==========================================================================
+
+themen:
+  - id: fed
+    titel: Fed Speak & Geldpolitik
+    beschreibung: >
+      Wer von der US-Notenbank spricht demnächst, was wurde zuletzt gesagt,
+      und wie reagieren die kurzfristigen Zinsen?
+    suchbegriffe:
+      - '"Federal Reserve" speech rates'
+      - 'Fed officials "rate cut" OR "rate hike"'
+    analyse: fed
+
+  - id: gold_btc
+    titel: Gold, Bitcoin & Liquidität
+    beschreibung: >
+      Fallen Gold, Bitcoin und Aktien gleichzeitig, während der Dollar steigt, ist das
+      oft ein Zeichen, dass Anleger Liquidität brauchen und verkaufen, was sich verkaufen lässt.
+    suchbegriffe:
+      - 'gold bitcoin selloff liquidity'
+      - 'bitcoin price gold price'
+    analyse: gold_btc
+
+  - id: ki
+    titel: Nvidia, KI-Investitionen & Bewertungen
+    beschreibung: >
+      Nvidia-Zahlen, die Finanzierung des KI-Ausbaus (Nvidia als "Bank" der Branche:
+      Beteiligungen, Garantien, Mietmodelle) und die Bewertungen von KI-Firmen
+      wie OpenAI und Anthropic.
+    suchbegriffe:
+      - 'Nvidia earnings'
+      - 'Nvidia financing OR backstop OR "Bank of Nvidia" OR "circular deals"'
+      - 'Anthropic OR OpenAI valuation funding round'
+    analyse: ki
+
+  - id: hormuz
+    titel: Strait of Hormuz
+    beschreibung: >
+      Rund ein Fünftel des weltweiten Öls wird durch die Strasse von Hormuz transportiert.
+      Weniger Tanker-Durchfahrten bedeuten ein Risiko für den Ölpreis.
+    suchbegriffe:
+      - '"Strait of Hormuz" tankers'
+      - 'Hormuz oil shipping'
+    analyse: hormuz
+
+  - id: cta
+    titel: CTA & systematische Fonds
+    beschreibung: >
+      Trendfolgende Fonds (CTAs) kaufen bei steigenden und verkaufen bei fallenden Märkten.
+      Ihre Positionierung kann Bewegungen verstärken.
+    suchbegriffe:
+      - 'CTA positioning equities'
+      - '"systematic funds" OR "trend followers" selling OR buying stocks'
+    analyse: cta
+
+  - id: schweiz
+    titel: Schweiz & SNB
+    beschreibung: Schweizerische Nationalbank, Franken und Schweizer Wirtschaft.
+    suchbegriffe:
+      - 'Swiss National Bank franc'
+      - 'SNB Schlegel OR "Swiss franc"'

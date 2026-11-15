@@ -1,0 +1,12 @@
+{% extends "basis.html" %}
+{% import "makros.html" as m %}
+{% block inhalt %}
+<h1 class="seitentitel">News</h1>
+<p class="einleitung">Schlagzeilen der letzten 7 Tage zu deinen Themen, neueste zuerst. Ein Klick öffnet den Artikel
+beim Anbieter (manche Seiten wie FT oder Bloomberg sind kostenpflichtig).</p>
+<div class="filter">
+  <button class="aktiv" data-filter="alle">Alle</button>
+  {% for id, titel in themen_liste %}<button data-filter="{{ id }}">{{ titel }}</button>{% endfor %}
+</div>
+{{ m.newsliste(news, mit_thema=True) }}
+{% endblock %}

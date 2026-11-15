@@ -1,0 +1,12 @@
+{% extends "basis.html" %}
+{% block inhalt %}
+<h1 class="seitentitel">Makro & Zinsen</h1>
+<p class="einleitung">Zinsen, Inflation, Arbeitsmarkt, Kreditrisiko und Liquidität in den USA –
+die Treiber hinter vielen Marktbewegungen. Alle Daten von der Federal Reserve Bank of St. Louis (FRED).</p>
+
+<h2 class="rubrik">Zinsen & Inflation</h2>
+<div class="raster">{% for b in bloecke %}{{ b }}{% endfor %}</div>
+
+<h2 class="rubrik">Liquidität</h2>
+<div class="raster">{{ liquiditaet }}</div>
+{% endblock %}

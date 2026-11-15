@@ -1,0 +1,146 @@
+/* ==========================================================================
+   Market Terminal – Gestaltung (heller, redaktioneller Stil, angelehnt an FT/Bloomberg)
+   Farben zentral hier ändern:
+   ========================================================================== */
+:root {
+  --papier: #ffffff;
+  --flaeche: #f6f4f1;          /* leicht getönte Flächen (Kursband, Kästen) */
+  --tinte: #1a1817;            /* Haupttext */
+  --tinte-2: #4a4542;          /* Fliesstext */
+  --grau: #6b6560;             /* Nebeninfos */
+  --linie: #e3dfda;            /* feine Trennlinien */
+  --akzent: #990f3d;           /* Bordeaux: aktive Navigation, Rubriken */
+  --link: #0f5499;             /* FT-Blau */
+  --plus: #0a7d3b;
+  --minus: #c8102e;
+  --warnung: #b26b00;
+  --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --sans: Inter, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body { margin: 0; background: var(--papier); color: var(--tinte); font: 15px/1.5 var(--sans);
+       font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.rahmen { max-width: 1240px; margin: 0 auto; padding: 0 20px; }
+
+/* ---------- Kopf ---------- */
+.oberzeile { border-bottom: 1px solid var(--linie); font-size: 12px; color: var(--grau); }
+.oberzeile .rahmen { display: flex; justify-content: space-between; padding-top: 6px; padding-bottom: 6px; gap: 12px; flex-wrap: wrap; }
+.kopf .rahmen { display: flex; align-items: flex-end; justify-content: space-between; padding-top: 18px; padding-bottom: 14px; gap: 12px; flex-wrap: wrap; }
+.marke { font-family: var(--serif); font-size: 36px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; color: var(--tinte); }
+.marke:hover { text-decoration: none; }
+.unterzeile { color: var(--grau); font-size: 13px; margin-top: 6px; }
+.fehlerhinweis { font-size: 13px; color: var(--minus); border: 1px solid #f0c8cf; background: #fdf3f5; padding: 4px 10px; border-radius: 3px; }
+
+nav.haupt { position: sticky; top: 0; z-index: 10; background: var(--papier); border-top: 1px solid var(--tinte);
+            border-bottom: 1px solid var(--linie); }
+nav.haupt ul { display: flex; gap: 2px; margin: 0; padding: 0; list-style: none; overflow-x: auto; scrollbar-width: none; }
+nav.haupt a { display: block; padding: 11px 12px 9px; color: var(--tinte); font-size: 14px; font-weight: 500;
+              border-bottom: 3px solid transparent; white-space: nowrap; }
+nav.haupt a:hover { text-decoration: none; border-bottom-color: var(--linie); }
+nav.haupt a.aktiv { border-bottom-color: var(--akzent); font-weight: 600; }
+
+.band { background: var(--flaeche); border-bottom: 1px solid var(--linie); }
+.band ul { display: flex; margin: 0; padding: 0; list-style: none; overflow-x: auto; scrollbar-width: thin; }
+.band li { padding: 8px 16px 8px 0; margin-right: 16px; border-right: 1px solid var(--linie); white-space: nowrap; font-size: 13px; }
+.band li:last-child { border-right: 0; }
+.band .n { color: var(--grau); margin-right: 6px; }
+.band .k { font-weight: 600; margin-right: 6px; }
+
+/* ---------- Inhalt ---------- */
+main { padding: 8px 0 56px; }
+h1.seitentitel { font-family: var(--serif); font-size: 32px; font-weight: 700; letter-spacing: -0.01em; margin: 24px 0 4px; }
+.einleitung { color: var(--tinte-2); font-size: 16px; max-width: 760px; margin: 0 0 8px; }
+h2.rubrik { font-family: var(--serif); font-size: 23px; font-weight: 700; margin: 36px 0 14px; padding-top: 10px;
+            border-top: 3px solid var(--tinte); display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+h2.rubrik small { font-family: var(--sans); font-size: 13px; font-weight: 400; color: var(--grau); }
+h3.unterrubrik { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--akzent); margin: 22px 0 8px; font-weight: 700; }
+
+.raster { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 36px; }
+.raster-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 32px; }
+.spalten { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 40px; }
+@media (max-width: 960px) { .raster, .raster-3, .spalten { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- Grafiken ---------- */
+.figur { margin: 0; padding: 14px 0 12px; border-top: 1px solid var(--linie); min-width: 0; }
+.figur.breit { grid-column: 1 / -1; }
+.figur h4 { margin: 0; font-size: 15.5px; font-weight: 700; color: var(--tinte); }
+.figur-unter { margin: 2px 0 6px; font-size: 12.5px; color: var(--grau); }
+.figur figcaption { font-size: 11px; color: var(--grau); margin-top: 2px; }
+.figur-hinweis { font-size: 12.5px; color: var(--tinte-2); margin: 6px 0 0; padding-left: 10px; border-left: 2px solid var(--linie); }
+.zeitraum { display: inline-flex; border: 1px solid var(--linie); border-radius: 3px; overflow: hidden; margin: 2px 0 6px; }
+.zeitraum button { border: 0; background: var(--papier); padding: 3px 9px; font: 500 12px var(--sans); color: var(--grau); cursor: pointer; }
+.zeitraum button + button { border-left: 1px solid var(--linie); }
+.zeitraum button:hover { background: var(--flaeche); color: var(--tinte); }
+.zeitraum button.aktiv { background: var(--tinte); color: #fff; }
+.fehlt { height: 160px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px;
+         background: repeating-linear-gradient(135deg, #fbfaf8 0 8px, #f3f1ed 8px 9px); color: var(--minus); font-weight: 600; font-size: 14px; }
+.fehlt span { color: var(--grau); font-weight: 400; font-size: 12px; max-width: 90%; text-align: center; }
+
+/* ---------- Tabellen ---------- */
+.tabelle-rahmen { overflow-x: auto; }
+table.tabelle { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tabelle th { text-align: right; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--grau);
+              font-weight: 600; padding: 6px 10px; border-bottom: 1px solid var(--tinte); white-space: nowrap; }
+.tabelle td { text-align: right; padding: 7px 10px; border-bottom: 1px solid var(--linie); white-space: nowrap; }
+.tabelle th:first-child, .tabelle td:first-child { text-align: left; padding-left: 0; }
+.tabelle td.links, .tabelle th.links { text-align: left; }
+.tabelle td.umbruch { white-space: normal; }
+.tabelle .tk { color: var(--grau); font-size: 11.5px; margin-left: 6px; }
+.tabelle .whg { color: var(--grau); font-size: 11.5px; margin-left: 3px; }
+.tabelle td.fett { font-weight: 600; }
+.tabelle td.grau { color: var(--grau); font-size: 12.5px; }
+.tabelle tr.fehlerzeile td { color: var(--minus); }
+.plus { color: var(--plus); } .minus { color: var(--minus); } .neutral { color: var(--grau); }
+.veraltet { color: var(--warnung) !important; }
+svg.mini { display: block; margin-left: auto; }
+
+/* ---------- Übersicht ---------- */
+.aufmacher { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 40px; margin-top: 20px; }
+@media (max-width: 960px) { .aufmacher { grid-template-columns: minmax(0, 1fr); } }
+.blick { margin: 0; padding: 0; list-style: none; }
+.blick li { font-family: var(--serif); font-size: 17.5px; line-height: 1.5; padding: 9px 0; border-bottom: 1px solid var(--linie); color: var(--tinte-2); }
+.blick li b { color: var(--tinte); }
+.vermerk { font-size: 12px; color: var(--grau); margin-top: 8px; }
+.beweger { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+/* ---------- News & Termine ---------- */
+.newsliste { list-style: none; margin: 0; padding: 0; }
+.newsliste li { padding: 10px 0; border-bottom: 1px solid var(--linie); }
+.newsliste a { font-family: var(--serif); font-size: 17px; line-height: 1.35; color: var(--tinte); font-weight: 600; }
+.newsliste a:hover { color: var(--link); text-decoration: none; }
+.newsliste .meta { font-size: 12px; color: var(--grau); margin-top: 3px; }
+.newsliste .meta .thema { color: var(--akzent); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; font-size: 11px; margin-right: 6px; }
+.newsliste.kompakt a { font-size: 15.5px; }
+.filter { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 12px; }
+.filter button { border: 1px solid var(--linie); background: var(--papier); padding: 5px 12px; border-radius: 20px;
+                 font: 500 13px var(--sans); color: var(--tinte-2); cursor: pointer; }
+.filter button.aktiv { background: var(--tinte); border-color: var(--tinte); color: #fff; }
+.termin-tag td:first-child { font-weight: 700; }
+.etikett { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 2px; background: var(--flaeche); color: var(--tinte-2); }
+.etikett.fed { background: #e7eef7; color: #0f5499; } .etikett.zahlen { background: #fbeee6; color: #9a4316; }
+.etikett.fomc { background: #f7e6ec; color: var(--akzent); }
+.wichtig td { background: #fffbea; }
+
+/* ---------- Kennzahlen & Kästen ---------- */
+.kennzahlen { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0; border-top: 1px solid var(--tinte); margin: 6px 0 4px; }
+.kennzahl { padding: 12px 16px 12px 0; border-bottom: 1px solid var(--linie); }
+.kennzahl .w { font-family: var(--serif); font-size: 30px; font-weight: 700; line-height: 1.1; }
+.kennzahl .l { font-size: 12.5px; color: var(--grau); margin-top: 2px; }
+.kasten { background: var(--flaeche); padding: 14px 18px; margin: 10px 0; border-left: 3px solid var(--akzent); }
+.kasten p { margin: 4px 0; }
+.ampel { font-weight: 700; }
+.ampel.hoch { color: var(--minus); } .ampel.mittel { color: var(--warnung); } .ampel.tief { color: var(--plus); }
+.themen-nav { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; margin: 8px 0 0; padding: 10px 0; border-bottom: 1px solid var(--linie); }
+.thema-block { scroll-margin-top: 60px; }
+
+footer { border-top: 1px solid var(--tinte); padding: 14px 0 30px; font-size: 12px; color: var(--grau); }
+
+@media print {
+  nav.haupt { position: static; }
+  .zeitraum, .filter { display: none; }
+  .figur, .kennzahl, .newsliste li { break-inside: avoid; }
+  main { padding-bottom: 0; }
+}

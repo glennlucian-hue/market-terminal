@@ -1,0 +1,104 @@
+# ==========================================================================
+#  Baut die Market-Terminal-Website auf einem Gratis-Server von GitHub,
+#  verschlüsselt sie mit deinem Passwort und veröffentlicht sie auf GitHub Pages.
+#
+#  Läuft:  - jeden Morgen automatisch (siehe "schedule")
+#          - manuell: Reiter "Actions" -> "Website aktualisieren" -> "Run workflow"
+#          - nach jeder Änderung am Programm (push)
+#
+#  Benötigte Secrets (Settings -> Secrets and variables -> Actions):
+#    SITE_PASSWORT  (Pflicht)  Passwort für die Website
+#    FRED_API_KEY   (optional) dein FRED-Schlüssel
+# ==========================================================================
+name: Website aktualisieren
+
+on:
+  schedule:
+    # 05:00 UTC = 06:00 Uhr Winterzeit / 07:00 Uhr Sommerzeit in Zürich.
+    # GitHub startet geplante Läufe teils 10–30 Minuten verspätet.
+    - cron: "0 5 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  bauen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Python-Pakete installieren
+        run: pip install -r requirements.txt
+
+      - name: Zwischenspeicher vom letzten Lauf holen (Notfall-Reserve)
+        uses: actions/cache/restore@v4
+        with:
+          path: cache
+          key: daten-${{ github.run_id }}
+          restore-keys: daten-
+
+      - name: Website bauen
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+          TZ: Europe/Zurich
+        run: python main.py --nicht-oeffnen
+
+      - name: Zwischenspeicher sichern
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: cache
+          key: daten-${{ github.run_id }}
+
+      - name: Website mit Passwort verschlüsseln (StatiCrypt)
+        env:
+          PASSWORT: ${{ secrets.SITE_PASSWORT }}
+        run: |
+          if [ -z "$PASSWORT" ]; then
+            echo "::error::Das Secret SITE_PASSWORT fehlt. Die Website wird aus Sicherheitsgründen NICHT veröffentlicht."
+            exit 1
+          fi
+          npx --yes staticrypt@3.5.4 website/*.html -d website -p "$PASSWORT" --short --remember 30 \
+            --template-title "Market Terminal" \
+            --template-instructions "Persönlicher Markt-Research. Bitte Passwort eingeben." \
+            --template-button "Öffnen" \
+            --template-placeholder "Passwort" \
+            --template-remember "Angemeldet bleiben (30 Tage)" \
+            --template-error "Falsches Passwort" \
+            --template-color-primary "#990f3d" \
+            --template-color-secondary "#f6f4f1"
+          # Kontrolle: keine Seite darf unverschlüsselt veröffentlicht werden
+          for f in website/*.html; do
+            grep -q "staticrypt" "$f" || { echo "::error::$f ist nicht verschlüsselt"; exit 1; }
+          done
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: website
+
+  veroeffentlichen:
+    needs: bauen
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4

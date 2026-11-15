@@ -1,0 +1,12 @@
+{% extends "basis.html" %}
+{% import "makros.html" as m %}
+{% block inhalt %}
+<h1 class="seitentitel">Termine</h1>
+<p class="einleitung">Die nächsten drei Wochen: Auftritte von Fed-Vertretern, FOMC-Sitzungen und Quartalszahlen
+der Firmen aus deiner Watchlist und dem KI-Korb.</p>
+{{ m.termintabelle(termine) }}
+<div class="kasten"><p><b>Hinweis:</b> Wirtschaftsdaten wie Inflation (CPI) oder Arbeitsmarktbericht sind noch nicht
+enthalten – dafür gibt es keinen verlässlichen Gratis-Kalender ohne API-Key.
+{% if fred_key %}Dein FRED-Schlüssel ist eingerichtet; diese Termine können als Nächstes ergänzt werden.
+{% else %}Mit deinem FRED-Schlüssel in der Datei <code>.env</code> können wir sie später ergänzen.{% endif %}</p></div>
+{% endblock %}

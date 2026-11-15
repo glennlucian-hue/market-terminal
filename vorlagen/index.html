@@ -1,0 +1,36 @@
+{% extends "basis.html" %}
+{% import "makros.html" as m %}
+{% block inhalt %}
+
+<div class="aufmacher">
+  <section>
+    <h2 class="rubrik">Auf einen Blick</h2>
+    <ul class="blick">{% for s in kommentar %}<li>{{ s }}</li>{% endfor %}</ul>
+    <p class="vermerk">Automatisch aus den aktuellen Daten formuliert – keine Anlageempfehlung.</p>
+  </section>
+  <section>
+    <h2 class="rubrik">Top-News <small><a href="news.html">Alle News →</a></small></h2>
+    {{ m.newsliste(news[:7], mit_thema=True, kompakt=True) }}
+  </section>
+</div>
+
+<h2 class="rubrik">Grösste Bewegungen <small>letzter Handelstag, Watchlist</small></h2>
+<div class="beweger">
+  {% for titel, liste in (("Gewinner", gewinner), ("Verlierer", verlierer)) %}
+  <div class="tabelle-rahmen"><table class="tabelle">
+    <thead><tr><th>{{ titel }}</th><th>Kurs</th><th>1 Tag</th><th>YTD</th></tr></thead>
+    <tbody>{% for z in liste %}
+      <tr><td>{{ z.name }}</td><td>{{ z.kurs | zahl }}<span class="whg">{{ z.waehrung }}</span></td>
+          {{ m.aenderung(z.tag) }}{{ m.aenderung(z.ytd) }}</tr>{% endfor %}
+    </tbody>
+  </table></div>
+  {% endfor %}
+</div>
+
+<h2 class="rubrik">Schlüsselmärkte <small>1 Jahr · <a href="maerkte.html">Alle Märkte →</a></small></h2>
+<div class="raster-3">{% for c in charts %}{{ c }}{% endfor %}</div>
+
+<h2 class="rubrik">Termine der nächsten 7 Tage <small><a href="termine.html">Alle Termine →</a></small></h2>
+{{ m.termintabelle(termine) }}
+
+{% endblock %}

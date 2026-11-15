@@ -1,0 +1,79 @@
+{% extends "basis.html" %}
+{% import "makros.html" as m %}
+{% block inhalt %}
+<h1 class="seitentitel">Themen</h1>
+<p class="einleitung">Deine Schwerpunkte mit Daten und aktuellen Schlagzeilen. Themen hinzufügen oder ändern:
+Datei <code>themen.yaml</code>.</p>
+<div class="themen-nav">{% for t in themen %}<a href="#{{ t.id }}">{{ t.titel }}</a>{% endfor %}</div>
+
+{% for t in themen %}
+<section class="thema-block" id="{{ t.id }}">
+  <h2 class="rubrik">{{ t.titel }}</h2>
+  <p class="einleitung">{{ t.beschreibung }}</p>
+
+  {% if t.kpi %}
+  <div class="kennzahlen">
+    <div class="kennzahl"><div class="w">{{ '%.1f' | format(t.kpi.aktuell) }}</div><div class="l">Tanker pro Tag (7-Tage-Schnitt bis {{ t.kpi.stand | datum }})</div></div>
+    {% if t.kpi.vorjahr %}<div class="kennzahl"><div class="w">{{ '%.0f' | format(t.kpi.vorjahr) }}</div><div class="l">Durchschnitt 2025</div></div>
+    <div class="kennzahl"><div class="w {{ (t.kpi.aktuell / t.kpi.vorjahr * 100 - 100) | klasse }}">{{ '%+.0f' | format(t.kpi.aktuell / t.kpi.vorjahr * 100 - 100) }}%</div><div class="l">gegenüber 2025</div></div>{% endif %}
+  </div>
+  {% endif %}
+
+  {% if t.selloff %}
+  <div class="kasten">
+    <p><b>Liquiditäts-Selloff-Check</b> (letzte {{ t.selloff.tage }} Handelstage): <span class="ampel {{ t.selloff.stufe }}">{{ t.selloff.urteil }}</span>
+       – {{ t.selloff.treffer }} von {{ t.selloff.von }} Kriterien erfüllt.</p>
+    <div class="tabelle-rahmen"><table class="tabelle">
+      <thead><tr><th>Markt</th><th class="links">Typisch bei Liquiditätsstress</th><th>Veränderung</th><th class="links">Erfüllt?</th></tr></thead>
+      <tbody>{% for z in t.selloff.zeilen %}
+        <tr><td>{{ z.name }}</td><td class="links">{{ z.erwartet }}</td>{{ m.aenderung(z.veraenderung) }}
+            <td class="links">{{ '✔ ja' if z.passt else '✖ nein' if z.passt is not none else 'keine Daten' }}</td></tr>
+      {% endfor %}</tbody>
+    </table></div>
+  </div>
+  {% endif %}
+
+  {% if t.cta %}
+  <div class="kasten"><p>Unser CTA-Modell schätzt die Positionierung von Trendfolgern im S&P 500 aktuell auf
+    <b class="{{ t.cta.aktuell | klasse }}">{{ '%+.0f' | format(t.cta.aktuell) }}%</b> der maximalen Position.
+    Details, Auslöser-Niveaus und CFTC-Daten: <a href="positionierung.html">Seite Positionierung →</a></p></div>
+  {% endif %}
+
+  <div class="spalten">
+    <div>
+      {% if t.charts %}<div class="raster" style="grid-template-columns:minmax(0,1fr)">{% for c in t.charts %}{{ c }}{% endfor %}</div>{% endif %}
+
+      {% if t.tabellen.bewertung %}
+      <figure class="figur">
+        <h4>Bewertungen der grossen KI-Aktien</h4>
+        <p class="figur-unter">Kurs-Gewinn-Verhältnis (KGV): Wie viele Jahresgewinne kostet die Aktie? Erwartet = auf Basis der Analystenschätzungen.</p>
+        <div class="tabelle-rahmen"><table class="tabelle">
+          <thead><tr><th>Firma</th><th>Börsenwert (USD)</th><th>KGV</th><th>KGV erwartet</th><th>Kurs/Umsatz</th><th>Nächste Zahlen</th></tr></thead>
+          <tbody>{% for f in t.tabellen.bewertung %}
+            <tr><td>{{ f.name }}<span class="tk">{{ f.ticker }}</span></td><td>{{ f.marktwert | mrd }}</td>
+                <td>{{ '%.1f' | format(f.kgv) if f.kgv else '–' }}</td><td>{{ '%.1f' | format(f.kgv_erwartet) if f.kgv_erwartet else '–' }}</td>
+                <td>{{ '%.1f' | format(f.kurs_umsatz) if f.kurs_umsatz else '–' }}</td>
+                <td class="grau">{{ f.naechste_zahlen or '–' }}</td></tr>
+          {% endfor %}</tbody>
+        </table></div>
+        <figcaption>Quelle: Yahoo Finance. OpenAI und Anthropic sind nicht börsenkotiert – ihre Bewertungen findest du in den News.</figcaption>
+      </figure>
+      {% endif %}
+
+      {% if t.termine is defined %}
+      <h3 class="unterrubrik">Kommende Fed-Termine (14 Tage)</h3>
+      {{ m.termintabelle(t.termine) }}
+      {% endif %}
+    </div>
+    <aside>
+      {% if t.reden %}
+      <h3 class="unterrubrik">Neueste Fed-Reden</h3>
+      {{ m.newsliste(t.reden, kompakt=True) }}
+      {% endif %}
+      <h3 class="unterrubrik">Schlagzeilen</h3>
+      {{ m.newsliste(t.news[:8], kompakt=True) }}
+    </aside>
+  </div>
+</section>
+{% endfor %}
+{% endblock %}

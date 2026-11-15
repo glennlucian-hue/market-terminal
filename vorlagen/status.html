@@ -1,0 +1,30 @@
+{% extends "basis.html" %}
+{% block inhalt %}
+<h1 class="seitentitel">Datenstatus</h1>
+<p class="einleitung">Welche Daten beim letzten Start geladen wurden. Hilfreich, wenn etwas fehlt.</p>
+<div class="kennzahlen">
+  <div class="kennzahl"><div class="w plus">{{ zaehler.ok }}</div><div class="l">frisch geladen</div></div>
+  <div class="kennzahl"><div class="w">{{ zaehler.cache }}</div><div class="l">aus dem Zwischenspeicher</div></div>
+  <div class="kennzahl"><div class="w veraltet">{{ zaehler.alt }}</div><div class="l">veraltet (Notfall-Kopie)</div></div>
+  <div class="kennzahl"><div class="w minus">{{ zaehler.fehler }}</div><div class="l">fehlgeschlagen</div></div>
+</div>
+{% if fehler %}
+<h2 class="rubrik">Fehler</h2>
+<div class="tabelle-rahmen"><table class="tabelle">
+  <thead><tr><th>Daten</th><th class="links">Meldung</th></tr></thead>
+  <tbody>{% for k, v in fehler.items() %}<tr class="fehlerzeile"><td>{{ k }}</td><td class="links umbruch">{{ v }}</td></tr>{% endfor %}</tbody>
+</table></div>
+<div class="kasten"><p><b>Was tun?</b> Meist hilft es, später nochmals zu starten (Anbieter kurz nicht erreichbar).
+Steht dort "Ticker falsch geschrieben?", prüfe das Kürzel in <code>watchlist.yaml</code> auf finance.yahoo.com.
+Weitere Tipps in der Anleitung (README).</p></div>
+{% endif %}
+<h2 class="rubrik">Alle Abrufe</h2>
+<div class="tabelle-rahmen"><table class="tabelle">
+  <thead><tr><th>Quelle</th><th class="links">Daten</th><th class="links">Status</th><th>Zeit</th></tr></thead>
+  <tbody>{% for p in protokoll | sort(attribute='quelle') %}
+    <tr><td>{{ p.quelle }}</td><td class="links grau">{{ p.schluessel }}</td>
+        <td class="links {{ 'plus' if p.status == 'ok' else 'minus' if p.status == 'fehler' else 'veraltet' if p.status == 'alt' }}">{{ {'ok':'frisch geladen','cache':'Zwischenspeicher','alt':'veraltet','fehler':'Fehler'}[p.status] }}</td>
+        <td class="grau">{{ p.zeit }}</td></tr>
+  {% endfor %}</tbody>
+</table></div>
+{% endblock %}
