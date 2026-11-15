@@ -31,9 +31,9 @@
 <nav class="haupt"><div class="rahmen"><ul>
   {% for id, name in seiten %}<li><a href="{{ id }}.html" class="{{ 'aktiv' if id == aktiv }}">{{ name }}</a></li>{% endfor %}
 </ul></div></nav>
-<div class="band"><div class="rahmen"><ul>
-  {% for z in band %}<li>{% if z.ok %}<span class="n">{{ z.name }}</span><span class="k">{{ z.kurs | zahl }}</span><span class="{{ z.tag | klasse }}">{{ z.tag | veraenderung(z.einheit) }}</span>{% else %}<span class="n">{{ z.name }}</span><span class="minus">n/v</span>{% endif %}</li>{% endfor %}
-</ul></div></div>
+{% if aktiv != "index" %}<div class="band"><div class="rahmen"><ul>
+  {% for z in band %}<li>{% if z.ok %}<span class="n">{{ z.name }}</span><span class="k">{{ z | kurs }}</span><span class="{{ z.tag | klasse }}">{{ z.tag | veraenderung(z.einheit) }}</span>{% else %}<span class="n">{{ z.name }}</span><span class="minus">n/v</span>{% endif %}</li>{% endfor %}
+</ul></div></div>{% endif %}
 
 <main><div class="rahmen">
 {% block inhalt %}{% endblock %}

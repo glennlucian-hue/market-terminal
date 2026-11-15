@@ -63,6 +63,11 @@ def fmt_veraenderung(x, einheit="%") -> str:
     return f"{pfeil} {x:+.0f} bp" if einheit == "bp" else f"{pfeil} {x:+.2f}%"
 
 
+def fmt_kurs(z: dict) -> str:
+    """Kurs eines Watchlist-Werts: Renditen immer mit 2 Nachkommastellen."""
+    return fmt_zahl(z.get("kurs"), 2 if z.get("einheit") == "bp" else None)
+
+
 def css_klasse(x) -> str:
     if x is None or pd.isna(x) or abs(x) < 1e-9:
         return "neutral"
@@ -85,6 +90,11 @@ def vor_wann(iso: str | None) -> str:
     if diff < timedelta(hours=24):
         return f"vor {int(diff.total_seconds() // 3600)} Std."
     return t.astimezone(ZUERICH).strftime("%d.%m.%Y")
+
+
+def anker(text: str) -> str:
+    """Macht aus einem Ticker oder Namen eine gültige Sprungmarke für Links (#...)."""
+    return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-") or "x"
 
 
 def datum_lang(d) -> str:
@@ -202,7 +212,8 @@ def _kurs_chart(z: dict, hoehe=250, start_tage=365, knoepfe=True) -> Markup:
     if not z["ok"]:
         return charts.fehlt(z["name"], z["fehler"])
     unter = "Rendite in %" if z["art"] == "rendite" else f"Schlusskurs in {z['waehrung']}" if z["waehrung"] else "Schlusskurs"
-    return charts.linien({z["name"]: z["serie"]}, titel=z["name"], untertitel=unter,
+    zwei_jahre = z["serie"][z["serie"].index >= z["serie"].index[-1] - timedelta(days=740)]  # Knöpfe zeigen max. 2 J.
+    return charts.linien({z["name"]: zwei_jahre}, titel=z["name"], untertitel=unter,
                          quelle=f"{z['quelle_name']} ({z['ticker']})", einheit="%" if z["art"] == "rendite" else "",
                          start_tage=start_tage, knoepfe=knoepfe, hoehe=hoehe, hinweis=z.get("hinweis", ""))
 
@@ -225,7 +236,8 @@ def seite_maerkte(d: Sammlung, werte: list[dict]) -> dict:
         for z in zeilen:
             if z["ok"]:
                 z["mini"] = charts.mini(z["serie"], charts.FARBEN[0])
-        gruppen.append({"name": g["name"], "zeilen": zeilen, "charts": [_kurs_chart(z) for z in zeilen]})
+        gruppen.append({"name": g["name"], "id": anker(g["name"]), "zeilen": zeilen,
+                        "charts": [_kurs_chart(z, hoehe=215) for z in zeilen]})
     return {"gruppen": gruppen}
 
 
@@ -251,7 +263,8 @@ def seite_makro(d: Sammlung) -> dict:
         for sid, name in ids_namen.items():
             if sid not in f:
                 return charts.fehlt(titel, d.fehler.get(sid, f"{sid} fehlt"))
-            serien[name] = umrechnen(f[sid]) if umrechnen else f[sid]
+            reihe = umrechnen(f[sid]) if umrechnen else f[sid]
+            serien[name] = reihe[reihe.index >= reihe.index[-1] - timedelta(days=max(start, 730) + 31)]
         return charts.linien(serien, titel=titel, untertitel=unter, quelle=f"{Q_FRED} ({', '.join(ids_namen)})",
                              einheit=einheit, start_tage=start, hinweis=erkl, nulllinie=null)
 
@@ -275,7 +288,27 @@ def seite_makro(d: Sammlung) -> dict:
               "Aufschlag gegenüber Staatsanleihen in %", start=730,
               erkl="Ein steigender Aufschlag zeigt Stress am Kreditmarkt."),
     ]
-    return {"bloecke": bloecke, "liquiditaet": _liquiditaet_chart(d)}
+    return {"bloecke": bloecke, "liquiditaet": _liquiditaet_chart(d), "kennzahlen": _makro_kennzahlen(d)}
+
+
+def _makro_kennzahlen(d: Sammlung) -> list[dict]:
+    """Die wichtigsten US-Makrowerte auf einen Blick, mit Veränderung gegenüber dem Vormonat."""
+    f = d.fred
+    defs = [("DFEDTARU", "Leitzins (Obergrenze)", None), ("DGS2", "Rendite 2 J.", None),
+            ("DGS10", "Rendite 10 J.", None), ("T10Y2Y", "Steilheit 10J–2J", None),
+            ("CPIAUCSL", "Inflation (CPI, J/J)", analysen.jahresveraenderung),
+            ("PCEPILFE", "Kern-PCE (J/J)", analysen.jahresveraenderung),
+            ("UNRATE", "Arbeitslosenquote", None), ("BAMLH0A0HYM2", "High-Yield-Aufschlag", None)]
+    ergebnis = []
+    for sid, name, umrechnen in defs:
+        if sid not in f:
+            ergebnis.append({"name": name, "wert": None})
+            continue
+        s = umrechnen(f[sid]) if umrechnen else f[sid]
+        vormonat = kennzahlen.kurs_am_oder_vor(s, s.index[-1] - timedelta(days=31))
+        diff = (float(s.iloc[-1]) - vormonat) * 100 if vormonat is not None else None
+        ergebnis.append({"name": name, "wert": float(s.iloc[-1]), "diff_bp": diff, "stand": s.index[-1]})
+    return ergebnis
 
 
 def _liquiditaet_chart(d: Sammlung, breit=True) -> Markup:
@@ -364,8 +397,13 @@ def _termine(d: Sammlung, tage: int = 21) -> list[dict]:
                 liste.append({"datum": tag, "zeit": "", "art": "Quartalszahlen", "titel": info["name"],
                               "detail": ticker, "wichtig": ticker == "NVDA"})
     liste.sort(key=lambda x: (x["datum"], x["zeit"] or "99"))
+    vorher = None
     for x in liste:
         x["tag_text"] = datum_kurz(x["datum"])
+        x["tag_lang"] = ("Heute · " if x["datum"] == heute else "Morgen · " if x["datum"] == heute + timedelta(days=1)
+                         else "") + datum_lang(x["datum"])
+        x["neuer_tag"] = x["datum"] != vorher
+        vorher = x["datum"]
     return liste
 
 
@@ -376,6 +414,8 @@ def seite_themen(d: Sammlung, werte: list[dict]) -> list[dict]:
         a = t.get("analyse")
         if a == "fed":
             block["termine"] = [x for x in _termine(d, 14) if x["art"] != "Quartalszahlen"]
+            for i, x in enumerate(block["termine"]):
+                x["neuer_tag"] = i == 0 or x["datum"] != block["termine"][i - 1]["datum"]
             block["reden"] = [{**r, "vor": vor_wann(r.get("zeit"))} for r in d.fed_reden[:6]]
             if "DGS2" in d.fred and "DFEDTARU" in d.fred:
                 block["charts"].append(charts.linien(
@@ -500,7 +540,6 @@ def baue_website(watchlist: dict, themen: list[dict], melde=print):
     preise = [z for z in werte if z["ok"] and z["art"] == "preis" and z["tag"] is not None and not z["veraltet"]
               and z["ticker"] != "^VIX"]  # VIX ist ein Risikobarometer, kein Anlagewert
     beweger = sorted(preise, key=lambda z: z["tag"])
-    wichtig = {"^GSPC", "DGS10", "GC=F", "BTC-USD", "BZ=F", "CHF=X"}
     status = cache.PROTOKOLL
 
     gemeinsam = {
@@ -512,7 +551,9 @@ def baue_website(watchlist: dict, themen: list[dict], melde=print):
     inhalte = {
         "index": {"kommentar": _kommentar(d, werte, themen_bloecke),
                   "gewinner": beweger[::-1][:5], "verlierer": beweger[:5],
-                  "charts": [_kurs_chart(z, hoehe=210, knoepfe=False) for z in werte if z["ticker"] in wichtig],
+                  "cockpit": [{**z, "mini_gross": charts.mini(z["serie"], charts.FARBEN[0], b=150, h=40),
+                               "anker": anker(z["ticker"]), "gruppe_id": anker(z["gruppe"])}
+                              for z in werte if z.get("band") and z["ok"]],
                   "news": alle_news[:12], "termine": _termine(d, 7)},
         "maerkte": seite_maerkte(d, werte),
         "makro": seite_makro(d),
@@ -526,7 +567,7 @@ def baue_website(watchlist: dict, themen: list[dict], melde=print):
     }
 
     umgebung = Environment(loader=FileSystemLoader(VORLAGEN_ORDNER), autoescape=select_autoescape(["html"]))
-    umgebung.filters.update(zahl=fmt_zahl, veraenderung=fmt_veraenderung, klasse=css_klasse, mrd=fmt_mrd,
+    umgebung.filters.update(anker=anker, kurs=fmt_kurs, zahl=fmt_zahl, veraenderung=fmt_veraenderung, klasse=css_klasse, mrd=fmt_mrd,
                             datum=lambda x: x.strftime("%d.%m.%Y") if x else "–")
     WEBSITE_ORDNER.mkdir(exist_ok=True)
     (WEBSITE_ORDNER / "assets").mkdir(exist_ok=True)

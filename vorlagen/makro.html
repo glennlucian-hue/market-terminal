@@ -1,12 +1,29 @@
 {% extends "basis.html" %}
 {% block inhalt %}
 <h1 class="seitentitel">Makro & Zinsen</h1>
-<p class="einleitung">Zinsen, Inflation, Arbeitsmarkt, Kreditrisiko und Liquidität in den USA –
-die Treiber hinter vielen Marktbewegungen. Alle Daten von der Federal Reserve Bank of St. Louis (FRED).</p>
+<p class="einleitung">Die wichtigsten US-Wirtschaftsdaten – die Treiber hinter vielen Marktbewegungen.
+Quelle: Federal Reserve Bank of St. Louis (FRED).</p>
 
-<h2 class="rubrik">Zinsen & Inflation</h2>
-<div class="raster">{% for b in bloecke %}{{ b }}{% endfor %}</div>
+<div class="kennzahlen kennzahlen-4">
+  {% for k in kennzahlen %}
+  <div class="kennzahl">
+    <div class="l">{{ k.name }}</div>
+    {% if k.wert is not none %}
+    <div class="w">{{ '%.2f' | format(k.wert) }}%</div>
+    <div class="d {{ k.diff_bp | klasse }}">{{ k.diff_bp | veraenderung("bp") }} <span class="grau">ggü. Vormonat · Stand {{ k.stand | datum }}</span></div>
+    {% else %}<div class="w minus">n/v</div>{% endif %}
+  </div>
+  {% endfor %}
+</div>
 
-<h2 class="rubrik">Liquidität</h2>
-<div class="raster">{{ liquiditaet }}</div>
+<div class="reiter" data-reiter>
+  <button data-ziel="zinsen" class="aktiv">Zinsen & Inflation</button>
+  <button data-ziel="liquiditaet">Liquidität</button>
+</div>
+<section class="reiter-inhalt" data-id="zinsen">
+  <div class="raster">{% for b in bloecke %}{{ b }}{% endfor %}</div>
+</section>
+<section class="reiter-inhalt" data-id="liquiditaet">
+  <div class="raster">{{ liquiditaet }}</div>
+</section>
 {% endblock %}

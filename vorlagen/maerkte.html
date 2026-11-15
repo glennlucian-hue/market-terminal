@@ -2,36 +2,35 @@
 {% import "makros.html" as m %}
 {% block inhalt %}
 <h1 class="seitentitel">Märkte</h1>
-<p class="einleitung">Alle Werte deiner Watchlist. Die Liste änderst du in der Datei <code>watchlist.yaml</code>.
-Zinsen: Veränderungen in Basispunkten (bp, 100 bp = 1 Prozentpunkt).</p>
+<p class="einleitung">Wähle eine Gruppe für Details und Charts. Zinsen: Veränderung in Basispunkten (100 bp = 1 Prozentpunkt).
+Die Liste änderst du in <code>watchlist.yaml</code>.</p>
 
-<div class="tabelle-rahmen"><table class="tabelle">
-  <thead><tr><th>Wert</th><th>Kurs</th><th>1 Tag</th><th>1 Woche</th><th>1 Monat</th><th>YTD</th><th>1 Jahr</th><th>3 Monate</th><th>Stand</th></tr></thead>
-  <tbody>
-  {% for g in gruppen %}
-    <tr><td colspan="9"><h3 class="unterrubrik" style="margin:14px 0 0">{{ g.name }}</h3></td></tr>
-    {% for z in g.zeilen %}
-    {% if z.ok %}
-    <tr>
-      <td><a href="#{{ z.ticker | replace('^','') | replace('=','') }}">{{ z.name }}</a><span class="tk">{{ z.ticker }}</span></td>
-      <td class="fett">{{ z.kurs | zahl }}<span class="whg">{{ z.waehrung }}</span></td>
-      {{ m.aenderung(z.tag, z.einheit) }}{{ m.aenderung(z.woche, z.einheit) }}{{ m.aenderung(z.monat, z.einheit) }}
-      {{ m.aenderung(z.ytd, z.einheit) }}{{ m.aenderung(z.jahr, z.einheit) }}
-      <td>{{ z.mini }}</td>
-      <td class="grau {{ 'veraltet' if z.veraltet }}">{{ z.stand | datum }}</td>
-    </tr>
-    {% else %}
-    <tr class="fehlerzeile"><td>{{ z.name }}<span class="tk">{{ z.ticker }}</span></td><td colspan="8" class="links">✖ Daten nicht verfügbar: {{ z.fehler }}</td></tr>
-    {% endif %}
-    {% endfor %}
-  {% endfor %}
-  </tbody>
-</table></div>
-
-{% for g in gruppen %}
-<h2 class="rubrik">{{ g.name }}</h2>
-<div class="raster">
-  {% for c in g.charts %}<div id="{{ g.zeilen[loop.index0].ticker | replace('^','') | replace('=','') }}">{{ c }}</div>{% endfor %}
+<div class="reiter" data-reiter>
+  <button data-ziel="alle" class="aktiv">Alle Werte</button>
+  {% for g in gruppen %}<button data-ziel="{{ g.id }}">{{ g.name }}</button>{% endfor %}
 </div>
+
+{# --- Reiter "Alle": eine kompakte Tabelle mit allem --- #}
+<section class="reiter-inhalt" data-id="alle">
+  <div class="tabelle-rahmen"><table class="tabelle">
+    <thead><tr><th>Wert</th><th>Kurs</th><th>1 Tag</th><th>1 Woche</th><th>1 Monat</th><th>YTD</th><th>1 Jahr</th><th>3 Monate</th><th>Stand</th></tr></thead>
+    <tbody>
+    {% for g in gruppen %}
+      <tr class="gruppenzeile"><td colspan="9"><a href="#{{ g.id }}">{{ g.name }} →</a></td></tr>
+      {% for z in g.zeilen %}{{ m.marktzeile(z) }}{% endfor %}
+    {% endfor %}
+    </tbody>
+  </table></div>
+</section>
+
+{# --- Ein Reiter pro Gruppe: Tabelle + Charts --- #}
+{% for g in gruppen %}
+<section class="reiter-inhalt" data-id="{{ g.id }}">
+  <div class="tabelle-rahmen"><table class="tabelle">
+    <thead><tr><th>{{ g.name }}</th><th>Kurs</th><th>1 Tag</th><th>1 Woche</th><th>1 Monat</th><th>YTD</th><th>1 Jahr</th><th>3 Monate</th><th>Stand</th></tr></thead>
+    <tbody>{% for z in g.zeilen %}{{ m.marktzeile(z) }}{% endfor %}</tbody>
+  </table></div>
+  <div class="raster-3">{% for c in g.charts %}{{ c }}{% endfor %}</div>
+</section>
 {% endfor %}
 {% endblock %}

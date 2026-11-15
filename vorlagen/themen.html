@@ -4,11 +4,13 @@
 <h1 class="seitentitel">Themen</h1>
 <p class="einleitung">Deine Schwerpunkte mit Daten und aktuellen Schlagzeilen. Themen hinzufügen oder ändern:
 Datei <code>themen.yaml</code>.</p>
-<div class="themen-nav">{% for t in themen %}<a href="#{{ t.id }}">{{ t.titel }}</a>{% endfor %}</div>
+<div class="reiter" data-reiter>
+  {% for t in themen %}<button data-ziel="{{ t.id }}" class="{{ 'aktiv' if loop.first }}">{{ t.titel }}</button>{% endfor %}
+</div>
 
 {% for t in themen %}
-<section class="thema-block" id="{{ t.id }}">
-  <h2 class="rubrik">{{ t.titel }}</h2>
+<section class="reiter-inhalt thema-block" data-id="{{ t.id }}">
+  <h2 class="rubrik nur-druck">{{ t.titel }}</h2>
   <p class="einleitung">{{ t.beschreibung }}</p>
 
   {% if t.kpi %}

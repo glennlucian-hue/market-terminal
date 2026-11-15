@@ -19,23 +19,57 @@
 {% endif %}
 {%- endmacro %}
 
+{% macro etikett(art) -%}
+<span class="etikett {{ 'fed' if art in ('Fed-Rede', 'Anhörung') else 'fomc' if art == 'FOMC' else 'zahlen' if art == 'Quartalszahlen' }}">{{ art }}</span>
+{%- endmacro %}
+
+{# Termine nach Tagen gruppiert (für die Termine-Seite und Themen) #}
 {% macro termintabelle(termine) -%}
 {% if termine %}
-<div class="tabelle-rahmen"><table class="tabelle">
-  <thead><tr><th>Tag</th><th class="links">Zeit</th><th class="links">Art</th><th class="links">Ereignis</th></tr></thead>
+<div class="tabelle-rahmen"><table class="tabelle termine">
   <tbody>
   {% for t in termine %}
+  {% if t.neuer_tag %}<tr class="tageszeile"><td colspan="3">{{ t.tag_lang }}</td></tr>{% endif %}
   <tr class="{{ 'wichtig' if t.wichtig }}">
-    <td>{{ t.tag_text }}</td>
-    <td class="links grau">{{ t.zeit or "–" }}</td>
-    <td class="links"><span class="etikett {{ 'fed' if t.art in ('Fed-Rede', 'Anhörung') else 'fomc' if t.art == 'FOMC' else 'zahlen' if t.art == 'Quartalszahlen' }}">{{ t.art }}</span></td>
+    <td class="zeit">{{ t.zeit or "ganztags" }}</td>
+    <td class="links art">{{ etikett(t.art) }}</td>
     <td class="links umbruch"><b>{{ t.titel }}</b>{% if t.detail %}<span class="tk">{{ t.detail }}</span>{% endif %}</td>
   </tr>
   {% endfor %}
   </tbody>
 </table></div>
-<p class="vermerk">Zeiten in Schweizer Zeit. Gelb hinterlegt: besonders marktrelevant (Fed-Chair, FOMC, Nvidia).</p>
+<p class="vermerk">Schweizer Zeit. Gelb hinterlegt: besonders marktrelevant (Fed-Chair, FOMC, Nvidia).</p>
 {% else %}
 <p class="vermerk">Keine Termine im gewählten Zeitraum gefunden.</p>
 {% endif %}
 {%- endmacro %}
+
+{# Kurze Terminliste für die Übersicht #}
+{% macro terminliste(termine) -%}
+{% if termine %}
+<ul class="terminliste">
+  {% for t in termine %}
+  <li class="{{ 'wichtig' if t.wichtig }}"><span class="tl-tag">{{ t.tag_text }}</span><span class="tl-zeit">{{ t.zeit or "–" }}</span>
+      <span class="tl-text">{{ etikett(t.art) }} {{ t.titel }}</span></li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="vermerk">Keine Termine in den nächsten 7 Tagen.</p>
+{% endif %}
+{%- endmacro %}
+
+{# Eine Zeile der Markttabelle #}
+{% macro marktzeile(z) %}
+{% if z.ok %}
+<tr>
+  <td>{{ z.name }}<span class="tk">{{ z.ticker }}</span></td>
+  <td class="fett">{{ z | kurs }}<span class="whg">{{ z.waehrung }}</span></td>
+  {{ aenderung(z.tag, z.einheit) }}{{ aenderung(z.woche, z.einheit) }}{{ aenderung(z.monat, z.einheit) }}
+  {{ aenderung(z.ytd, z.einheit) }}{{ aenderung(z.jahr, z.einheit) }}
+  <td>{{ z.mini }}</td>
+  <td class="grau {{ 'veraltet' if z.veraltet }}">{{ z.stand | datum }}</td>
+</tr>
+{% else %}
+<tr class="fehlerzeile"><td>{{ z.name }}<span class="tk">{{ z.ticker }}</span></td><td colspan="8" class="links">✖ Daten nicht verfügbar: {{ z.fehler }}</td></tr>
+{% endif %}
+{% endmacro %}

@@ -18,7 +18,8 @@
 Steht dort "Ticker falsch geschrieben?", prüfe das Kürzel in <code>watchlist.yaml</code> auf finance.yahoo.com.
 Weitere Tipps in der Anleitung (README).</p></div>
 {% endif %}
-<h2 class="rubrik">Alle Abrufe</h2>
+<details class="aufklappen">
+<summary>Alle {{ protokoll | length }} Abrufe anzeigen</summary>
 <div class="tabelle-rahmen"><table class="tabelle">
   <thead><tr><th>Quelle</th><th class="links">Daten</th><th class="links">Status</th><th>Zeit</th></tr></thead>
   <tbody>{% for p in protokoll | sort(attribute='quelle') %}
@@ -27,4 +28,5 @@ Weitere Tipps in der Anleitung (README).</p></div>
         <td class="grau">{{ p.zeit }}</td></tr>
   {% endfor %}</tbody>
 </table></div>
+</details>
 {% endblock %}

@@ -17,7 +17,7 @@
 #    art: rendite   -> für Zinsen: Veränderungen in Basispunkten (bp) statt Prozent
 #    quelle: fred   -> Daten von der US-Notenbank St. Louis (FRED) statt Yahoo.
 #                      Der Ticker ist dann die FRED-Serien-ID, z. B. "DGS10".
-#    band: true     -> Wert erscheint im Kursband oben auf jeder Seite
+#    band: true     -> Wert erscheint im Kursband oben und als Kachel im Markt-Cockpit (Übersicht)
 # ==========================================================================
 
 einstellungen:
@@ -49,6 +49,7 @@ gruppen:
         ticker: "DGS2"
         quelle: fred
         art: rendite
+        band: true
       - name: US-Rendite 10 J.
         ticker: "DGS10"
         quelle: fred

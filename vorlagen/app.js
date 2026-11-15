@@ -40,3 +40,31 @@ document.querySelectorAll(".filter").forEach(function (leiste) {
     });
   });
 });
+
+// 3) Reiter (Märkte, Makro, Themen): immer nur einen Bereich zeigen.
+//    Die Adresse merkt sich den Reiter (z. B. themen.html#hormuz), damit Links direkt dorthin führen.
+document.querySelectorAll("[data-reiter]").forEach(function (leiste) {
+  var knoepfe = Array.prototype.slice.call(leiste.querySelectorAll("button"));
+  var bereiche = Array.prototype.slice.call(document.querySelectorAll(".reiter-inhalt"));
+
+  function zeige(ziel, scrollen) {
+    if (!knoepfe.some(function (b) { return b.dataset.ziel === ziel; })) ziel = knoepfe[0].dataset.ziel;
+    knoepfe.forEach(function (b) { b.classList.toggle("aktiv", b.dataset.ziel === ziel); });
+    bereiche.forEach(function (bereich) {
+      var sichtbar = bereich.dataset.id === ziel;
+      bereich.hidden = !sichtbar;
+      // Charts, die versteckt gezeichnet wurden, an die richtige Breite anpassen
+      if (sichtbar && window.Plotly) bereich.querySelectorAll(".js-plotly-plot").forEach(function (gd) { Plotly.Plots.resize(gd); });
+    });
+    if (scrollen) leiste.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  leiste.addEventListener("click", function (e) {
+    var knopf = e.target.closest("button");
+    if (!knopf) return;
+    history.replaceState(null, "", "#" + knopf.dataset.ziel);
+    zeige(knopf.dataset.ziel, false);
+  });
+  window.addEventListener("hashchange", function () { zeige(location.hash.slice(1), true); });
+  zeige(location.hash.slice(1) || (leiste.querySelector(".aktiv") || knoepfe[0]).dataset.ziel, !!location.hash);
+});

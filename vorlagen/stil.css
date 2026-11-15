@@ -28,10 +28,10 @@ a:hover { text-decoration: underline; }
 /* ---------- Kopf ---------- */
 .oberzeile { border-bottom: 1px solid var(--linie); font-size: 12px; color: var(--grau); }
 .oberzeile .rahmen { display: flex; justify-content: space-between; padding-top: 6px; padding-bottom: 6px; gap: 12px; flex-wrap: wrap; }
-.kopf .rahmen { display: flex; align-items: flex-end; justify-content: space-between; padding-top: 18px; padding-bottom: 14px; gap: 12px; flex-wrap: wrap; }
-.marke { font-family: var(--serif); font-size: 36px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; color: var(--tinte); }
+.kopf .rahmen { display: flex; align-items: flex-end; justify-content: space-between; padding-top: 12px; padding-bottom: 10px; gap: 12px; flex-wrap: wrap; }
+.marke { font-family: var(--serif); font-size: 30px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; color: var(--tinte); }
 .marke:hover { text-decoration: none; }
-.unterzeile { color: var(--grau); font-size: 13px; margin-top: 6px; }
+.unterzeile { color: var(--grau); font-size: 12.5px; margin-top: 4px; }
 .fehlerhinweis { font-size: 13px; color: var(--minus); border: 1px solid #f0c8cf; background: #fdf3f5; padding: 4px 10px; border-radius: 3px; }
 
 nav.haupt { position: sticky; top: 0; z-index: 10; background: var(--papier); border-top: 1px solid var(--tinte);
@@ -44,16 +44,16 @@ nav.haupt a.aktiv { border-bottom-color: var(--akzent); font-weight: 600; }
 
 .band { background: var(--flaeche); border-bottom: 1px solid var(--linie); }
 .band ul { display: flex; margin: 0; padding: 0; list-style: none; overflow-x: auto; scrollbar-width: thin; }
-.band li { padding: 8px 16px 8px 0; margin-right: 16px; border-right: 1px solid var(--linie); white-space: nowrap; font-size: 13px; }
+.band li { padding: 7px 14px 7px 0; margin-right: 14px; border-right: 1px solid var(--linie); white-space: nowrap; font-size: 12.5px; }
 .band li:last-child { border-right: 0; }
 .band .n { color: var(--grau); margin-right: 6px; }
 .band .k { font-weight: 600; margin-right: 6px; }
 
 /* ---------- Inhalt ---------- */
 main { padding: 8px 0 56px; }
-h1.seitentitel { font-family: var(--serif); font-size: 32px; font-weight: 700; letter-spacing: -0.01em; margin: 24px 0 4px; }
+h1.seitentitel { font-family: var(--serif); font-size: 30px; font-weight: 700; letter-spacing: -0.01em; margin: 22px 0 4px; }
 .einleitung { color: var(--tinte-2); font-size: 16px; max-width: 760px; margin: 0 0 8px; }
-h2.rubrik { font-family: var(--serif); font-size: 23px; font-weight: 700; margin: 36px 0 14px; padding-top: 10px;
+h2.rubrik { font-family: var(--serif); font-size: 22px; font-weight: 700; margin: 30px 0 12px; padding-top: 10px;
             border-top: 3px solid var(--tinte); display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
 h2.rubrik small { font-family: var(--sans); font-size: 13px; font-weight: 400; color: var(--grau); }
 h3.unterrubrik { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--akzent); margin: 22px 0 8px; font-weight: 700; }
@@ -133,13 +133,67 @@ svg.mini { display: block; margin-left: auto; }
 .kasten p { margin: 4px 0; }
 .ampel { font-weight: 700; }
 .ampel.hoch { color: var(--minus); } .ampel.mittel { color: var(--warnung); } .ampel.tief { color: var(--plus); }
+.nur-druck { display: none; }
 .themen-nav { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; margin: 8px 0 0; padding: 10px 0; border-bottom: 1px solid var(--linie); }
 .thema-block { scroll-margin-top: 60px; }
+
+/* ---------- Reiter ---------- */
+.reiter { display: flex; gap: 0; margin: 18px 0 18px; border-bottom: 1px solid var(--linie); overflow-x: auto; scrollbar-width: none;
+          position: sticky; top: 44px; background: var(--papier); z-index: 5; }
+.reiter button { border: 0; border-bottom: 3px solid transparent; background: none; padding: 10px 14px 8px; font: 600 14px var(--sans);
+                 color: var(--grau); cursor: pointer; white-space: nowrap; }
+.reiter button:hover { color: var(--tinte); }
+.reiter button.aktiv { color: var(--tinte); border-bottom-color: var(--link); }
+.reiter-inhalt[hidden] { display: none; }
+.tabelle tr.gruppenzeile td { padding-top: 16px; border-bottom: 1px solid var(--tinte); font-size: 12px; font-weight: 700;
+                              text-transform: uppercase; letter-spacing: .08em; }
+.tabelle tr.gruppenzeile a { color: var(--akzent); }
+.tabelle.kompakt td { padding: 6px 8px; font-size: 13.5px; }
+
+/* ---------- Markt-Cockpit ---------- */
+.cockpit { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0; border-left: 1px solid var(--linie); }
+@media (max-width: 1100px) { .cockpit { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 700px)  { .cockpit { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.kachel { display: block; padding: 10px 12px; border-right: 1px solid var(--linie); border-bottom: 1px solid var(--linie);
+          color: var(--tinte); min-width: 0; }
+.kachel:hover { background: var(--flaeche); text-decoration: none; }
+.kachel-kopf { display: flex; justify-content: space-between; gap: 6px; font-size: 12.5px; }
+.kachel-name { color: var(--grau); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kachel-tag { white-space: nowrap; font-weight: 600; }
+.kachel-kurs { font-family: var(--serif); font-size: 22px; font-weight: 700; margin: 2px 0 4px; white-space: nowrap; }
+.kachel svg.mini { width: 100%; height: 34px; margin: 0; }
+.kachel .whg { font-family: var(--sans); font-size: 11px; font-weight: 500; color: var(--grau); margin-left: 4px; }
+.kachel-fuss { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--grau); margin-top: 2px; }
+
+/* ---------- Kennzahlen (Makro) ---------- */
+.kennzahlen-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 900px) { .kennzahlen-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.kennzahl .d { font-size: 12.5px; margin-top: 2px; }
+.kennzahl .d .grau { color: var(--grau); }
+.kennzahlen-4 .kennzahl .w { font-size: 26px; margin-top: 2px; }
+
+/* ---------- Termine ---------- */
+.tabelle.termine tr.tageszeile td { font-weight: 700; font-size: 13px; padding-top: 16px; border-bottom: 1px solid var(--tinte);
+                                    text-align: left; color: var(--tinte); }
+.tabelle.termine td.zeit { width: 80px; color: var(--grau); text-align: left; }
+.tabelle.termine td.art { width: 120px; }
+.terminliste { list-style: none; margin: 0; padding: 0; }
+.terminliste li { display: grid; grid-template-columns: 74px 46px minmax(0, 1fr); gap: 8px; padding: 7px 0;
+                  border-bottom: 1px solid var(--linie); font-size: 13.5px; align-items: baseline; }
+.terminliste li.wichtig { background: #fffbea; }
+.tl-tag { font-weight: 700; } .tl-zeit { color: var(--grau); }
+
+/* ---------- Aufklappen ---------- */
+details.aufklappen { margin-top: 24px; border-top: 1px solid var(--linie); padding-top: 10px; }
+details.aufklappen summary { cursor: pointer; font-weight: 600; color: var(--link); }
 
 footer { border-top: 1px solid var(--tinte); padding: 14px 0 30px; font-size: 12px; color: var(--grau); }
 
 @media print {
   nav.haupt { position: static; }
+  .reiter { display: none; }
+  .reiter-inhalt[hidden] { display: block !important; }
+  .nur-druck { display: flex; }
   .zeitraum, .filter { display: none; }
   .figur, .kennzahl, .newsliste li { break-inside: avoid; }
   main { padding-bottom: 0; }

@@ -2,6 +2,18 @@
 {% import "makros.html" as m %}
 {% block inhalt %}
 
+<h2 class="rubrik">Markt-Cockpit <small>letzter Kurs · 1 Tag · seit Jahresbeginn · Verlauf 3 Monate · <a href="maerkte.html">Alle Märkte →</a></small></h2>
+<div class="cockpit">
+  {% for z in cockpit %}
+  <a class="kachel" href="maerkte.html#{{ z.gruppe_id }}">
+    <div class="kachel-kopf"><span class="kachel-name">{{ z.name }}</span><span class="{{ z.tag | klasse }} kachel-tag">{{ z.tag | veraenderung(z.einheit) }}</span></div>
+    <div class="kachel-kurs">{{ z | kurs }}<span class="whg">{{ z.waehrung }}</span></div>
+    {{ z.mini_gross }}
+    <div class="kachel-fuss"><span>YTD</span><span class="{{ z.ytd | klasse }}">{{ z.ytd | veraenderung(z.einheit) }}</span></div>
+  </a>
+  {% endfor %}
+</div>
+
 <div class="aufmacher">
   <section>
     <h2 class="rubrik">Auf einen Blick</h2>
@@ -10,27 +22,28 @@
   </section>
   <section>
     <h2 class="rubrik">Top-News <small><a href="news.html">Alle News →</a></small></h2>
-    {{ m.newsliste(news[:7], mit_thema=True, kompakt=True) }}
+    {{ m.newsliste(news[:6], mit_thema=True, kompakt=True) }}
   </section>
 </div>
 
-<h2 class="rubrik">Grösste Bewegungen <small>letzter Handelstag, Watchlist</small></h2>
-<div class="beweger">
-  {% for titel, liste in (("Gewinner", gewinner), ("Verlierer", verlierer)) %}
-  <div class="tabelle-rahmen"><table class="tabelle">
-    <thead><tr><th>{{ titel }}</th><th>Kurs</th><th>1 Tag</th><th>YTD</th></tr></thead>
-    <tbody>{% for z in liste %}
-      <tr><td>{{ z.name }}</td><td>{{ z.kurs | zahl }}<span class="whg">{{ z.waehrung }}</span></td>
-          {{ m.aenderung(z.tag) }}{{ m.aenderung(z.ytd) }}</tr>{% endfor %}
-    </tbody>
-  </table></div>
-  {% endfor %}
+<div class="aufmacher">
+  <section>
+    <h2 class="rubrik">Grösste Bewegungen <small>letzter Handelstag</small></h2>
+    <div class="beweger">
+      {% for titel, liste in (("Gewinner", gewinner), ("Verlierer", verlierer)) %}
+      <div class="tabelle-rahmen"><table class="tabelle kompakt">
+        <thead><tr><th>{{ titel }}</th><th>1 Tag</th><th>YTD</th></tr></thead>
+        <tbody>{% for z in liste %}
+          <tr><td>{{ z.name }}</td>{{ m.aenderung(z.tag) }}{{ m.aenderung(z.ytd) }}</tr>{% endfor %}
+        </tbody>
+      </table></div>
+      {% endfor %}
+    </div>
+  </section>
+  <section>
+    <h2 class="rubrik">Nächste 7 Tage <small><a href="termine.html">Alle Termine →</a></small></h2>
+    {{ m.terminliste(termine[:10]) }}
+  </section>
 </div>
-
-<h2 class="rubrik">Schlüsselmärkte <small>1 Jahr · <a href="maerkte.html">Alle Märkte →</a></small></h2>
-<div class="raster-3">{% for c in charts %}{{ c }}{% endfor %}</div>
-
-<h2 class="rubrik">Termine der nächsten 7 Tage <small><a href="termine.html">Alle Termine →</a></small></h2>
-{{ m.termintabelle(termine) }}
 
 {% endblock %}

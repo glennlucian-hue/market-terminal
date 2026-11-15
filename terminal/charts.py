@@ -69,7 +69,7 @@ def _layout(fig: go.Figure, hoehe: int, legende: bool, einheit: str, werte: pd.S
         xaxis=dict(showgrid=False, showline=True, linecolor=ACHSE, ticks="outside", tickcolor=ACHSE,
                    ticklen=4, showspikes=True, spikemode="across", spikecolor=ACHSE,
                    spikethickness=1, spikedash="dot"),
-        yaxis=dict(side="right", gridcolor=RASTER, zeroline=False, showline=False,
+        yaxis=dict(side="right", gridcolor=RASTER, zeroline=False, showline=False, nticks=5,
                    tickformat=_tickformat(werte, einheit), ticksuffix="%" if einheit == "%" else ""),
     )
 
@@ -184,15 +184,14 @@ def kurve(kurven: dict[str, pd.Series], *, titel: str, untertitel: str, quelle: 
     return figur(titel, untertitel, quelle, _html(fig, div_id), breit=breit)
 
 
-def mini(s: pd.Series, farbe: str) -> Markup:
-    """Kleine Linie ohne Achsen für Tabellen (Sparkline), als SVG – schnell und druckbar."""
-    s = s.dropna().iloc[-66:]
+def mini(s: pd.Series, farbe: str, b: int = 96, h: int = 26, punkte: int = 66) -> Markup:
+    """Kleine Linie ohne Achsen (Sparkline), als SVG – schnell und druckbar. Standard: 3 Monate."""
+    s = s.dropna().iloc[-punkte:]
     if len(s) < 2:
         return Markup("")
-    b, h = 96, 26
     lo, hi = float(s.min()), float(s.max())
     spanne = (hi - lo) or 1
     punkte = " ".join(f"{i / (len(s) - 1) * b:.1f},{h - 2 - (float(v) - lo) / spanne * (h - 4):.1f}"
                       for i, v in enumerate(s.values))
-    return Markup(f'<svg class="mini" viewBox="0 0 {b} {h}" width="{b}" height="{h}" aria-hidden="true">'
-                  f'<polyline points="{punkte}" fill="none" stroke="{farbe}" stroke-width="1.5"/></svg>')
+    return Markup(f'<svg class="mini" viewBox="0 0 {b} {h}" width="{b}" height="{h}" preserveAspectRatio="none" aria-hidden="true">'
+                  f'<polyline points="{punkte}" fill="none" stroke="{farbe}" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg>')

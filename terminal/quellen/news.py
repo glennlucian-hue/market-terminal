@@ -28,6 +28,7 @@ def _rss(url: str) -> list[dict]:
         quelle = quelle.removeprefix("https://").removeprefix("http://").removeprefix("www.").rstrip("/")
         if " - " in titel:
             titel = titel.rsplit(" - ", 1)[0]  # Google hängt " - Quelle" an den Titel
+        titel = titel.strip().rstrip("-–| ").strip()
         try:
             zeit = parsedate_to_datetime(item.findtext("pubDate")).astimezone(timezone.utc).isoformat()
         except Exception:
