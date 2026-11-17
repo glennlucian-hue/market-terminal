@@ -1,0 +1,125 @@
+# ==========================================================================
+#  ANTHROPIC – Eckdaten zum Börsengang (Seite "Anthropic & IPOs")
+# ==========================================================================
+#  Quelle der Zahlen: Börsenprospekt Form S-1/A (Nachtrag Nr. 3) vom 17.11.2026 bei der
+#  US-Börsenaufsicht SEC. Beträge in Millionen USD, sofern nicht anders angegeben.
+#  Neue Zahlen (z. B. endgültiger Ausgabepreis) hier nachtragen – das Terminal rechnet alles neu.
+# ==========================================================================
+
+firma:
+  name: Anthropic, PBC
+  ticker: ANT
+  boerse: Nasdaq Global Select Market
+  rechtsform: Public Benefit Corporation (Delaware)
+  sec_cik: "0002130357"
+  prospekt_url: https://www.sec.gov/Archives/edgar/data/2130357/000162828026074338/anthropicpbc-sx1ax3.htm
+  stand: "17.11.2026"
+
+ipo:
+  preisspanne: [70.0, 78.0]          # USD je Aktie
+  ausgabepreis: null                 # nach der Preisfestsetzung eintragen, z. B. 80.0
+  aktien_angeboten: 825000000        # Class A, ohne Mehrzuteilungsoption
+  mehrzuteilung: 123750000           # Option der Banken (Greenshoe)
+  aktien_nach_ipo: 13086672593       # alle Aktienklassen nach IPO und Privatplatzierung
+  nettoerloes_mrd: 84.6              # Mrd. USD (93.7 mit voller Mehrzuteilung)
+  preisfestsetzung: "2026-11-19"     # erwartet (Nasdaq-IPO-Kalender)
+  erster_handelstag: "2026-11-20"    # erwartet: Tag nach der Preisfestsetzung
+
+# Quartalszahlen (3 Monate, Mio. USD)
+quartale:
+  - {quartal: "Q1 2025", umsatz: 376,   betriebsergebnis: -935,  rechenzentren: 944}
+  - {quartal: "Q2 2025", umsatz: 787,   betriebsergebnis: -1200, rechenzentren: 1390}
+  - {quartal: "Q3 2025", umsatz: 1382,  betriebsergebnis: -3089, rechenzentren: 2047}
+  - {quartal: "Q4 2025", umsatz: 2040,  betriebsergebnis: -2836, rechenzentren: 2945}
+  - {quartal: "Q1 2026", umsatz: 4731,  betriebsergebnis: -1667, rechenzentren: 3387}
+  - {quartal: "Q2 2026", umsatz: 11555, betriebsergebnis: 974,   rechenzentren: 5558}
+  - {quartal: "Q3 2026", umsatz: 16956, betriebsergebnis: -567,  rechenzentren: 9863}
+
+jahre:
+  - {jahr: "2023", umsatz: 41,   betriebsergebnis: -551}
+  - {jahr: "2024", umsatz: 386,  betriebsergebnis: -2980}
+  - {jahr: "2025", umsatz: 4585, betriebsergebnis: -8060}
+  - {jahr: "9M 2026", umsatz: 33242, betriebsergebnis: -1260}
+
+kennzahlen:
+  run_rate_mrd: 81.0                 # annualisierter Umsatz per 31.10.2026 (Definition im Prospekt)
+  run_rate_vormonat_mrd: 71.0        # per 30.09.2026
+  run_rate_datum: "31.10.2026"
+  reinverlust_9m_2026: -104039       # stark verzerrt durch nicht zahlungswirksame Neubewertungen
+  neubewertung_hinweis: >
+    Der hohe Reinverlust entsteht vor allem durch die Neubewertung von Wandelanleihen und
+    SAFEs (nicht zahlungswirksam). Aussagekräftiger ist das Betriebsergebnis.
+  kunden_100k: 11900                 # Kunden mit > 100'000 USD Umsatz (12 Monate), Vorjahr ~950
+  kunden_100k_vorjahr: 950
+  kunden_1mio: 1900
+  kunden_10mio: 250
+  cash_mrd: 95.6                     # flüssige Mittel per 30.09.2026
+  kurzfristige_anlagen_mrd: 36.3
+  anteil_cloud_marktplaetze: 44      # % des Umsatzes über Cloud-Marktplätze (9M 2026)
+  aktien_amazon: 1920511218
+  aktien_google: 1789598269
+
+# --------------------------------------------------------------------------
+#  Szenarien (Horizont 12 Monate) – alle Annahmen hier anpassbar
+# --------------------------------------------------------------------------
+#  Kursziel = Run-Rate-Umsatz in 12 Monaten x Umsatz-Multiplikator / Anzahl Aktien
+#    wachstum_pro_quartal: angenommenes Wachstum der Run-Rate je Quartal (0.10 = 10 %)
+#    multiplikator: "auto" = aus Vergleichsfirmen (Perzentil), oder eine feste Zahl, z. B. 12
+#    perzentil: welches Perzentil der Vergleichsfirmen (25 = vorsichtig, 50 = Median, 75 = optimistisch)
+#    ersatz_multiplikator: wird verwendet, wenn keine Vergleichsdaten geladen werden konnten
+szenarien:
+  bear:
+    titel: Bear
+    wachstum_pro_quartal: 0.05
+    multiplikator: auto
+    perzentil: 25
+    ersatz_multiplikator: 8
+    begruendung: >
+      Wachstum bremst stark ab (Konkurrenz, Preisdruck bei KI-Modellen, Abhängigkeit von
+      Cloud-Marktplätzen). Hohe Rechenzentrumskosten drücken die Marge, der Markt bewertet
+      wie ein reifes Software-Unternehmen. Schwaches Umfeld für Tech-Aktien.
+  neutral:
+    titel: Neutral
+    wachstum_pro_quartal: 0.12
+    multiplikator: auto
+    perzentil: 50
+    ersatz_multiplikator: 12
+    begruendung: >
+      Wachstum normalisiert sich deutlich unter das bisherige Tempo, bleibt aber hoch.
+      Bewertung im Mittelfeld grosser KI- und Software-Firmen.
+  bull:
+    titel: Bull
+    wachstum_pro_quartal: 0.22
+    multiplikator: auto
+    perzentil: 75
+    ersatz_multiplikator: 18
+    begruendung: >
+      Die Nachfrage nach Claude (Unternehmen, Programmierung, Agenten) wächst weiter sehr
+      schnell, operative Gewinnschwelle wird nachhaltig erreicht. Der Markt zahlt einen Aufschlag
+      wie für die wachstumsstärksten KI-Firmen.
+  wahrscheinlichkeiten: {bull: 25, neutral: 50, bear: 25}   # in %, Grundeinstellung
+
+# Vergleichsfirmen für Bewertung und Risiko (Ticker: SEC-Nummer "CIK")
+vergleich_bewertung:
+  NVDA: 1045810
+  MSFT: 789019
+  ORCL: 1341439
+  AVGO: 1730168
+  PLTR: 1321655
+  NOW: 1373715
+  SNOW: 1640147
+  CRWV: 1769628
+# Grosse Tech-Börsengänge der letzten Jahre (Ticker: Name)
+vergleich_ipos:
+  ARM: Arm Holdings (2023)
+  RDDT: Reddit (2024)
+  CRWV: CoreWeave (2025)
+  CRCL: Circle (2025)
+  FIG: Figma (2025)
+  SPCX: SpaceX (2026)
+
+suchbegriffe:
+  - 'Anthropic IPO'
+  - 'Anthropic site:bloomberg.com'
+  - 'Anthropic Claude revenue OR valuation OR shares'
+  - 'site:anthropic.com'

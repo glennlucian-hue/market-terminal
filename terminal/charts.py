@@ -195,3 +195,66 @@ def mini(s: pd.Series, farbe: str, b: int = 96, h: int = 26, punkte: int = 66) -
                       for i, v in enumerate(s.values))
     return Markup(f'<svg class="mini" viewBox="0 0 {b} {h}" width="{b}" height="{h}" preserveAspectRatio="none" aria-hidden="true">'
                   f'<polyline points="{punkte}" fill="none" stroke="{farbe}" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg>')
+
+
+def balken(kategorien: list, werte: list, *, titel: str, untertitel: str, quelle: str, einheit: str = "",
+           farben: list[str] | None = None, horizontal: bool = False, hoehe: int = 280, hinweis: str = "",
+           breit: bool = False, beschriftung: list[str] | None = None, linie_bei: float | None = None,
+           linie_text: str = "", knoepfe: str = "") -> Markup:
+    """Balkendiagramm. farben: eine Farbe je Balken (z. B. zum Hervorheben), sonst Standard-Blau.
+    linie_bei: senkrechte Markierung (z. B. aktueller Kurs bei Strike-Balken)."""
+    div_id = f"chart{next(_zaehler)}"
+    farben = farben or [FARBEN[0]] * len(werte)
+    text = beschriftung if beschriftung is not None else [_fmt(w, einheit) if w is not None else "" for w in werte]
+    achse = dict(x=werte, y=kategorien, orientation="h") if horizontal else dict(x=kategorien, y=werte)
+    fig = go.Figure(go.Bar(**achse, marker=dict(color=farben, line=dict(width=0)), text=text,
+                           textposition="outside", cliponaxis=False, textfont=dict(size=11, color=TINTE),
+                           hovertemplate="%{" + ("y" if horizontal else "x") + "}: <b>%{text}</b><extra></extra>"))
+    werte_ok = pd.Series([w for w in werte if w is not None], dtype=float)
+    _layout(fig, hoehe, False, einheit if einheit != "%" else "", werte_ok if len(werte_ok) else pd.Series([0.0]), rechts=16)
+    fig.update_layout(bargap=0.3, hovermode="closest")
+    if horizontal:
+        fig.update_layout(margin=dict(l=8, r=40, t=8, b=24))
+        fig.update_yaxes(autorange="reversed", side="left", gridcolor="rgba(0,0,0,0)", type="category", dtick=1)
+        fig.update_xaxes(showgrid=True, gridcolor=RASTER, showspikes=False, zeroline=True, zerolinecolor=ACHSE)
+    else:
+        fig.update_xaxes(type="category", showspikes=False)
+        oben, unten = max(0.0, float(werte_ok.max())), min(0.0, float(werte_ok.min()))
+        luft = (oben - unten) * 0.15 or 1  # Platz für die Beschriftungen über/unter den Balken
+        fig.update_yaxes(zeroline=True, zerolinecolor=ACHSE, range=[unten - (luft if unten < 0 else 0), oben + luft])
+    if linie_bei is not None:
+        # Linie und Text getrennt zeichnen (funktioniert auch bei Text-Kategorien auf der x-Achse)
+        fig.add_shape(type="line", x0=linie_bei, x1=linie_bei, y0=0, y1=1, yref="paper",
+                      line=dict(color=TINTE, width=1, dash="dot"))
+        fig.add_annotation(x=linie_bei, y=1, yref="paper", yanchor="bottom", showarrow=False,
+                           text=linie_text, font=dict(size=11, color=TINTE))
+    return figur(titel, untertitel, quelle, _html(fig, div_id), knoepfe, hinweis, breit)
+
+
+def linien_xy(serien: dict[str, tuple[list, list]], *, titel: str, untertitel: str, quelle: str,
+              einheit: str = "", hoehe: int = 300, hinweis: str = "", breit: bool = False,
+              farben: list[str] | None = None, gestrichelt: set | None = None, band: tuple | None = None,
+              band_text: str = "", x_titel: str = "", referenz: float | None = None) -> Markup:
+    """Linien mit frei wählbarer x-Achse (z. B. Handelstag seit IPO oder Szenario-Pfade).
+    band: (unten, oben) – waagrechter Bereich, z. B. die IPO-Preisspanne."""
+    div_id = f"chart{next(_zaehler)}"
+    farben = farben or FARBEN
+    gestrichelt = gestrichelt or set()
+    fig = go.Figure()
+    alle = []
+    for (name, (x, y)), farbe in zip(serien.items(), farben):
+        fig.add_trace(go.Scatter(x=list(x), y=[round(float(v), 2) for v in y], name=name, mode="lines",
+                                 line=dict(color=farbe, width=2, dash="dash" if name in gestrichelt else None),
+                                 hovertemplate=f"%{{y:,.1f}}<extra>{escape(name)}</extra>"))
+        if farbe != "#c9c4be":  # graue Hintergrund-Linien ohne Wertkästchen
+            _letzter_wert(fig, float(y[-1]), farbe, einheit)
+        alle += [float(v) for v in y]
+    _layout(fig, hoehe, len(serien) > 1, einheit, pd.Series(alle))
+    fig.update_xaxes(showspikes=True, title=dict(text=x_titel, font=dict(size=11)) if x_titel else None)
+    if band:
+        fig.add_hrect(y0=band[0], y1=band[1], fillcolor="rgba(153,15,61,0.08)", line_width=0,
+                      annotation_text=band_text, annotation_position="top right",
+                      annotation_font=dict(size=11, color="#990f3d"))
+    if referenz is not None:
+        fig.add_hline(y=referenz, line=dict(color=ACHSE, width=1))
+    return figur(titel, untertitel, quelle, _html(fig, div_id), hinweis=hinweis, breit=breit)

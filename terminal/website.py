@@ -17,7 +17,7 @@ import plotly.offline
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from markupsafe import Markup
 
-from . import analysen, cache, charts, kennzahlen
+from . import analysen, anthropic_seite, cache, charts, kennzahlen
 from .konfiguration import VORLAGEN_ORDNER, WEBSITE_ORDNER
 from .quellen import cftc, fred, news, portwatch, yahoo
 
@@ -28,7 +28,8 @@ MONATE = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli",
           "August", "September", "Oktober", "November", "Dezember"]
 
 SEITEN = [("index", "Übersicht"), ("maerkte", "Märkte"), ("makro", "Makro & Zinsen"),
-          ("positionierung", "Positionierung"), ("themen", "Themen"), ("termine", "Termine"),
+          ("positionierung", "Positionierung"), ("themen", "Themen"), ("anthropic", "Anthropic & IPOs"),
+          ("termine", "Termine"),
           ("news", "News"), ("status", "Datenstatus")]
 
 # Zusätzliche Kurse für Analysen (falls nicht schon in der Watchlist)
@@ -179,7 +180,7 @@ def _sortiere_news(artikel: list[dict], anzahl: int = 12) -> list[dict]:
     gesehen, ergebnis = set(), []
     for a in sorted(artikel, key=lambda a: a.get("zeit") or "", reverse=True):
         schluessel = a["titel"].lower()[:70]
-        if schluessel in gesehen or not a["titel"]:
+        if schluessel in gesehen or len(a["titel"].strip(" -–")) < 20:  # leere/zu kurze Titel überspringen
             continue
         gesehen.add(schluessel)
         ergebnis.append({**a, "vor": vor_wann(a.get("zeit"))})
@@ -396,6 +397,10 @@ def _termine(d: Sammlung, tage: int = 21) -> list[dict]:
             if heute <= tag <= bis:
                 liste.append({"datum": tag, "zeit": "", "art": "Quartalszahlen", "titel": info["name"],
                               "detail": ticker, "wichtig": ticker == "NVDA"})
+    try:
+        liste += [t for t in anthropic_seite.termine() if heute <= t["datum"] <= bis]
+    except Exception:
+        pass
     liste.sort(key=lambda x: (x["datum"], x["zeit"] or "99"))
     vorher = None
     for x in liste:
@@ -537,6 +542,19 @@ def baue_website(watchlist: dict, themen: list[dict], melde=print):
                   for r in d.fed_reden[:10]]
     alle_news.sort(key=lambda a: a.get("zeit") or "", reverse=True)
 
+    melde("  Anthropic & IPOs (Prospekt, Vergleichsfirmen, Optionen, IPO-Kalender) ...")
+    vix = d.reihe("^VIX")
+    cta = _cta(d)
+    marktlage = {"selloff": next((t["selloff"]["stufe"] for t in themen_bloecke if t.get("selloff")), None),
+                 "vix": float(vix.iloc[-1]) if vix is not None else None, "cta": cta["aktuell"] if cta else None}
+    try:
+        anthropic_ctx = anthropic_seite.baue(d, marktlage)
+    except Exception as e:
+        anthropic_ctx = {"fehler_seite": f"{type(e).__name__}: {e}"}
+        d.fehler["anthropic_seite"] = anthropic_ctx["fehler_seite"]
+    alle_news += [{**a, "thema": "Anthropic", "thema_id": "anthropic"} for a in anthropic_ctx.get("news", [])[:15]]
+    alle_news.sort(key=lambda a: a.get("zeit") or "", reverse=True)
+
     preise = [z for z in werte if z["ok"] and z["art"] == "preis" and z["tag"] is not None and not z["veraltet"]
               and z["ticker"] != "^VIX"]  # VIX ist ein Risikobarometer, kein Anlagewert
     beweger = sorted(preise, key=lambda z: z["tag"])
@@ -559,9 +577,10 @@ def baue_website(watchlist: dict, themen: list[dict], melde=print):
         "makro": seite_makro(d),
         "positionierung": seite_positionierung(d),
         "themen": {"themen": themen_bloecke},
+        "anthropic": anthropic_ctx,
         "termine": {"termine": _termine(d, 21), "fred_key": bool(os.getenv("FRED_API_KEY"))},
         "news": {"news": alle_news, "themen_liste": [(t["id"], t["titel"]) for t in themen_bloecke]
-                 + [("fedreden", "Fed-Reden")]},
+                 + [("anthropic", "Anthropic"), ("fedreden", "Fed-Reden")]},
         "status": {"protokoll": status, "fehler": d.fehler,
                    "zaehler": {s: sum(1 for p in status if p["status"] == s) for s in ("ok", "cache", "alt", "fehler")}},
     }

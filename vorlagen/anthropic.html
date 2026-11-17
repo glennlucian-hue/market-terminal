@@ -1,0 +1,232 @@
+{% extends "basis.html" %}
+{% import "makros.html" as m %}
+{% block inhalt %}
+{% if fehler_seite %}
+<h1 class="seitentitel">Anthropic & IPOs</h1>
+<div class="fehlt" style="height:120px">Seite konnte nicht erstellt werden<span>{{ fehler_seite }}</span></div>
+{% else %}
+{% set f = cfg.firma %}{% set st = status %}{% set k = cfg.kennzahlen %}
+<h1 class="seitentitel">Anthropic & IPOs</h1>
+<p class="einleitung">{{ f.name }} · Ticker <b>{{ f.ticker }}</b> · {{ f.boerse }} · Status: <b>{{ st.phase }}</b>
+{% if ant_kurs %} · Kurs heute <b>{{ '%.2f' | format(ant_kurs) }} USD</b>{% endif %}</p>
+
+<div class="reiter" data-reiter>
+  <button data-ziel="ueberblick" class="aktiv">Überblick</button>
+  <button data-ziel="fundamentaldaten">Fundamentaldaten</button>
+  <button data-ziel="szenarien">Szenarien</button>
+  <button data-ziel="risiko">Risiko & Optionen</button>
+  <button data-ziel="vergleich">IPO-Vergleich</button>
+  <button data-ziel="kalender">Kommende IPOs</button>
+  <button data-ziel="news">News & Unterlagen</button>
+</div>
+
+{# ============================ Überblick ============================ #}
+<section class="reiter-inhalt" data-id="ueberblick">
+  <div class="kennzahlen kennzahlen-4">
+    <div class="kennzahl"><div class="l">Preisspanne je Aktie</div><div class="w">{{ '%.0f' | format(st.spanne[0]) }}–{{ '%.0f' | format(st.spanne[1]) }} USD</div>
+      <div class="d grau">{% if st.preis %}Ausgabepreis: <b>{{ '%.2f' | format(st.preis) }} USD</b>{% else %}Preisfestsetzung erwartet {{ st.datum }}{% endif %}</div></div>
+    <div class="kennzahl"><div class="l">Börsenwert bei Spanne</div><div class="w">{{ bewertung[0].boersenwert | zahl(0) }}–{{ bewertung[2].boersenwert | zahl(0) }}</div>
+      <div class="d grau">Mrd. USD · {{ (cfg.ipo.aktien_nach_ipo / 1e9) | round(2) }} Mrd. Aktien</div></div>
+    <div class="kennzahl"><div class="l">Run-Rate-Umsatz</div><div class="w">{{ '%.0f' | format(fund.run_rate) }} Mrd.</div>
+      <div class="d plus">▲ +{{ '%.0f' | format(fund.rr_monat) }}% in einem Monat <span class="grau">· per {{ k.run_rate_datum }}</span></div></div>
+    <div class="kennzahl"><div class="l">Umsatz Q3 2026</div><div class="w">{{ '%.1f' | format(fund.q_letzt) }} Mrd.</div>
+      <div class="d plus">▲ +{{ '%.0f' | format(fund.q_qoq) }}% ggü. Vorquartal</div></div>
+    <div class="kennzahl"><div class="l">Betriebsergebnis Q3 2026</div><div class="w {{ fund.be_letzt | klasse }}">{{ '%+.2f' | format(fund.be_letzt) }} Mrd.</div>
+      <div class="d grau">Q2 2026: +0.97 Mrd. (erstmals positiv)</div></div>
+    <div class="kennzahl"><div class="l">Kunden &gt; 100’000 USD/Jahr</div><div class="w">{{ k.kunden_100k | zahl(0) }}</div>
+      <div class="d plus">▲ Vorjahr ~{{ k.kunden_100k_vorjahr }} <span class="grau">· {{ k.kunden_1mio | zahl(0) }} über 1 Mio.</span></div></div>
+    <div class="kennzahl"><div class="l">Flüssige Mittel + Anlagen</div><div class="w">{{ '%.1f' | format(k.cash_mrd + k.kurzfristige_anlagen_mrd) }} Mrd.</div>
+      <div class="d grau">per 30.09.2026, vor IPO-Erlös von ~{{ cfg.ipo.nettoerloes_mrd }} Mrd.</div></div>
+    <div class="kennzahl"><div class="l">Anteil Amazon + Google</div><div class="w">{{ '%.0f' | format(fund.anteil_amazon_google) }}%</div>
+      <div class="d grau">aller Aktien nach dem IPO</div></div>
+  </div>
+
+  <div class="spalten">
+    <div>
+      <h3 class="unterrubrik">Eckdaten des Börsengangs</h3>
+      <table class="tabelle kompakt"><tbody>
+        <tr><td>Börse / Ticker</td><td class="links">{{ f.boerse }} / <b>{{ f.ticker }}</b></td></tr>
+        <tr><td>Rechtsform</td><td class="links">{{ f.rechtsform }} – dem Gemeinwohl verpflichtet (KI-Sicherheit)</td></tr>
+        <tr><td>Angebotene Aktien</td><td class="links">{{ cfg.ipo.aktien_angeboten | zahl(0) }} (+ {{ cfg.ipo.mehrzuteilung | zahl(0) }} Mehrzuteilung)</td></tr>
+        <tr><td>Emissionsvolumen</td><td class="links">{{ (cfg.ipo.aktien_angeboten * st.spanne[0] / 1e9) | round(1) }}–{{ (cfg.ipo.aktien_angeboten * st.spanne[1] / 1e9) | round(1) }} Mrd. USD</td></tr>
+        <tr><td>Nettoerlös für Anthropic</td><td class="links">~{{ cfg.ipo.nettoerloes_mrd }} Mrd. USD (inkl. gleichzeitiger Privatplatzierung)</td></tr>
+        <tr><td>Preisfestsetzung</td><td class="links">{{ cfg.ipo.preisfestsetzung }} (erwartet)</td></tr>
+        <tr><td>Erster Handelstag</td><td class="links">{{ cfg.ipo.erster_handelstag }} (erwartet)</td></tr>
+        <tr><td>Bewertung bei Mitte</td><td class="links">{{ bewertung[1].boersenwert | zahl(0) }} Mrd. USD = {{ '%.1f' | format(bewertung[1].ps_rr) }}x Run-Rate, {{ '%.1f' | format(bewertung[1].ps_ttm) }}x Umsatz 12 Mt.</td></tr>
+      </tbody></table>
+      <p class="vermerk">Quelle: {{ f.name }}, Form S-1/A vom {{ f.stand }} (<a href="{{ f.prospekt_url }}" target="_blank" rel="noopener">Prospekt bei der SEC</a>), Nasdaq IPO-Kalender.
+      Börsenwert = Preis × alle Aktien nach dem IPO; vollständig verwässert (inkl. Optionen/Wandelanleihen) liegt er höher.</p>
+    </div>
+    <aside>
+      <h3 class="unterrubrik">Szenarien auf einen Blick</h3>
+      {% for s in szenarien | reverse %}
+      <div class="szenario-mini" style="border-left-color: {{ s.farbe }}">
+        <b>{{ s.titel }}</b> · {{ '%.0f' | format(s.p) }}% · Ziel <b>{{ '%.0f' | format(s.ziel) }} USD</b>
+        <span class="{{ s.potenzial | klasse }}">({{ '%+.0f' | format(s.potenzial) }}%)</span>
+      </div>
+      {% endfor %}
+      <p class="vermerk">Gewichteter Erwartungswert: <b>{{ '%.0f' | format(erwartung.ziel) }} USD</b>
+        ({{ '%+.0f' | format(erwartung.potenzial) }}% ggü. {{ basis_text }}). <a href="#szenarien">Details →</a></p>
+      <h3 class="unterrubrik">Neueste Schlagzeilen</h3>
+      {{ m.newsliste(news[:5], kompakt=True) }}
+    </aside>
+  </div>
+</section>
+
+{# ============================ Fundamentaldaten ============================ #}
+<section class="reiter-inhalt" data-id="fundamentaldaten">
+  <div class="raster">{{ chart_umsatz }}{{ chart_ergebnis }}</div>
+  <div class="spalten">
+    <div>{{ chart_kosten }}</div>
+    <div>
+      <h3 class="unterrubrik">Geschäftsjahre (Mio. USD)</h3>
+      <table class="tabelle kompakt"><thead><tr><th>Periode</th><th>Umsatz</th><th>Betriebsergebnis</th></tr></thead><tbody>
+        {% for j in cfg.jahre %}<tr><td>{{ j.jahr }}</td><td>{{ j.umsatz | zahl(0) }}</td><td class="{{ j.betriebsergebnis | klasse }}">{{ j.betriebsergebnis | zahl(0) }}</td></tr>{% endfor %}
+      </tbody></table>
+      <div class="kasten"><p><b>Wichtig zum Reinverlust:</b> {{ k.neubewertung_hinweis }}
+        (9 Monate 2026: Reinverlust {{ (k.reinverlust_9m_2026 / 1000) | round(1) }} Mrd. USD,
+        Betriebsergebnis nur {{ (cfg.jahre[-1].betriebsergebnis / 1000) | round(1) }} Mrd. USD.)</p>
+        <p><b>Kunden:</b> {{ k.kunden_100k | zahl(0) }} mit über 100’000 USD, {{ k.kunden_1mio | zahl(0) }} mit über 1 Mio.,
+        ~{{ k.kunden_10mio }} mit über 10 Mio. USD Jahresumsatz. {{ k.anteil_cloud_marktplaetze }}% des Umsatzes laufen über
+        Cloud-Marktplätze (v. a. Amazon, Google).</p></div>
+    </div>
+  </div>
+</section>
+
+{# ============================ Szenarien ============================ #}
+<section class="reiter-inhalt" data-id="szenarien">
+  <div class="szenarien">
+    {% for s in szenarien | reverse %}
+    <div class="szenario" style="border-top-color: {{ s.farbe }}">
+      <div class="sz-kopf"><span class="sz-titel" style="color: {{ s.farbe }}">{{ s.titel }}</span><span class="sz-p">{{ '%.0f' | format(s.p) }}% Wahrscheinlichkeit</span></div>
+      <div class="sz-ziel">{{ '%.0f' | format(s.ziel) }} <span>USD</span></div>
+      <div class="{{ s.potenzial | klasse }} sz-pot">{{ '%+.0f' | format(s.potenzial) }}% ggü. {{ basis_text }} ({{ '%.2f' | format(basis) }})</div>
+      <table class="tabelle kompakt sz-tab"><tbody>
+        <tr><td>Wachstum Run-Rate je Quartal</td><td>{{ '%.0f' | format(s.wachstum_q) }}%</td></tr>
+        <tr><td>Run-Rate in 12 Monaten</td><td>{{ '%.0f' | format(s.run_rate_12m) }} Mrd.</td></tr>
+        <tr><td>Umsatz-Multiplikator</td><td>{{ '%.1f' | format(s.multiplikator) }}x</td></tr>
+        <tr><td>Börsenwert</td><td>{{ s.wert_mrd | zahl(0) }} Mrd.</td></tr>
+      </tbody></table>
+      <p class="sz-text">{{ s.begruendung }}</p>
+      <p class="vermerk">Multiplikator: {{ s.mult_text }}.</p>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="kasten">
+    <p><b>Gewichteter Erwartungswert:</b> {{ '%.0f' | format(erwartung.ziel) }} USD ({{ '%+.0f' | format(erwartung.potenzial) }}%).
+       <b>Anpassung an die Marktlage:</b></p>
+    <ul class="regeln">{% for r in regeln %}<li>{{ r }}</li>{% endfor %}</ul>
+  </div>
+  <div class="raster">{{ chart_szenarien }}</div>
+  <div class="kasten"><p><b>So funktioniert das Modell:</b> Kursziel = heutige Run-Rate ({{ k.run_rate_mrd }} Mrd. USD) × (1 + Wachstum je Quartal)⁴
+    × Umsatz-Multiplikator ÷ {{ (cfg.ipo.aktien_nach_ipo / 1e9) | round(2) }} Mrd. Aktien. Die Multiplikatoren stammen aus dem heutigen Verhältnis
+    Börsenwert/Umsatz der Vergleichsfirmen (Reiter «Risiko & Optionen»). Flüssige Mittel und Schulden sind nicht berücksichtigt.
+    Alle Annahmen kannst du in <code>anthropic.yaml</code> ändern. Das ist eine vereinfachte Modellrechnung, keine Prognose und keine Anlageberatung.</p></div>
+</section>
+
+{# ============================ Risiko & Optionen ============================ #}
+<section class="reiter-inhalt" data-id="risiko">
+  {% if not ant_kurs %}
+  <div class="kasten"><p><b>Anthropic wird noch nicht gehandelt.</b> Sharpe, Beta & Co. lassen sich erst nach einigen Wochen Handel sinnvoll berechnen
+    (das Terminal ergänzt sie automatisch). Als Orientierung dienen die Vergleichsfirmen und früheren IPOs:
+    <b>Median-Beta {{ '%.2f' | format(proxy.beta) if proxy.beta else '–' }}</b>, <b>Median-Volatilität {{ '%.0f' | format(proxy.vola) if proxy.vola else '–' }}%</b> –
+    d. h. eine solche Aktie bewegte sich im Schnitt etwa {{ '%.1f' | format(proxy.beta) if proxy.beta else '–' }}-mal so stark wie der S&P 500.</p></div>
+  {% endif %}
+  <h3 class="unterrubrik">Risiko-Kennzahlen (letzte 12 Monate bzw. seit Börsengang)</h3>
+  <div class="tabelle-rahmen"><table class="tabelle">
+    <thead><tr><th>Wert</th><th>Rendite</th><th>Volatilität</th><th>Sharpe</th><th>Sortino</th><th>Beta</th><th>Korrelation S&P</th><th>Max Drawdown</th><th>Handelstage</th></tr></thead>
+    <tbody>
+    {% for gruppe in ["Anthropic", "KI-Vergleich", "Frühere IPOs", "Markt"] %}
+      {% set zeilen = risiko | selectattr("gruppe", "equalto", gruppe) | list %}
+      {% if zeilen %}<tr class="gruppenzeile"><td colspan="9">{{ gruppe }}</td></tr>{% endif %}
+      {% for z in zeilen %}{% set x = z.k %}
+      <tr><td>{{ z.name }}<span class="tk">{{ z.ticker }}</span></td>
+        <td class="{{ x.rendite | klasse }}">{{ '%+.1f' | format(x.rendite) }}%{% if not x.annualisiert %}*{% endif %}</td>
+        <td>{{ '%.0f' | format(x.vola) }}%</td>
+        <td class="{{ x.sharpe | klasse }}">{{ '%.2f' | format(x.sharpe) if x.sharpe is not none else '–' }}</td>
+        <td>{{ '%.2f' | format(x.sortino) if x.sortino is not none else '–' }}</td>
+        <td class="fett">{{ '%.2f' | format(x.beta) if x.beta is not none else '–' }}</td>
+        <td>{{ '%.2f' | format(x.korrelation) if x.korrelation is not none else '–' }}</td>
+        <td class="minus">{{ '%.0f' | format(x.max_dd) }}%</td>
+        <td class="grau">{{ x.handelstage }}</td></tr>
+      {% endfor %}
+    {% endfor %}
+    </tbody>
+  </table></div>
+  <p class="vermerk">Sharpe/Sortino mit risikolosem Zins {{ '%.2f' | format(zins) }}% (US-Geldmarkt 3 Monate). * nicht annualisiert (weniger als 3 Monate Daten).
+  Beta: 1.5 = bewegt sich im Schnitt 1.5-mal so stark wie der S&P 500.</p>
+
+  <h2 class="rubrik">Gamma-Exposure {% if gamma_ticker != cfg.firma.ticker %}<small>Anthropic-Optionen noch nicht handelbar – Beispiel: {{ gamma_ticker }}</small>{% endif %}</h2>
+  {% if gamma %}
+  <div class="kennzahlen kennzahlen-4">
+    <div class="kennzahl"><div class="l">Gesamt-Gamma</div><div class="w {{ gamma.gesamt_mrd | klasse }}">{{ '%+.2f' | format(gamma.gesamt_mrd) }} Mrd.</div>
+      <div class="d grau">USD je 1 % Kursbewegung · {{ 'bremst Bewegungen' if gamma.gesamt_mrd > 0 else 'verstärkt Bewegungen' }}</div></div>
+    <div class="kennzahl"><div class="l">Gamma-Flip</div><div class="w">{{ '%.2f' | format(gamma.flip) if gamma.flip else '–' }}</div>
+      <div class="d grau">Kurs {{ '%.2f' | format(gamma.kurs) }} · {{ 'darüber = ruhiger, darunter = schwankungsreicher' }}</div></div>
+    <div class="kennzahl"><div class="l">Call-Wand</div><div class="w">{{ gamma.call_wand | zahl(0) if gamma.call_wand else '–' }}</div><div class="d grau">grösste positive Konzentration (oft Widerstand)</div></div>
+    <div class="kennzahl"><div class="l">Put-Wand</div><div class="w">{{ gamma.put_wand | zahl(0) if gamma.put_wand else '–' }}</div><div class="d grau">grösste negative Konzentration (oft Unterstützung)</div></div>
+  </div>
+  <div class="raster">{{ chart_gamma }}</div>
+  {% else %}<p class="vermerk">Keine Optionsdaten verfügbar.</p>{% endif %}
+  <div class="raster">{{ chart_peers }}</div>
+</section>
+
+{# ============================ IPO-Vergleich ============================ #}
+<section class="reiter-inhalt" data-id="vergleich">
+  <div class="raster">{{ chart_ipos }}</div>
+  {% if ipo_tabelle %}
+  <div class="tabelle-rahmen"><table class="tabelle">
+    <thead><tr><th>Börsengang</th><th>nach 5 Tagen</th><th>nach 20 Tagen</th><th>nach 60 Tagen</th><th>nach 120 Tagen</th><th>Tiefpunkt (120 T.)</th><th>bis heute</th></tr></thead>
+    <tbody>{% for z in ipo_tabelle %}
+      <tr><td>{{ z.name }}</td>{% for w in (z.t5, z.t20, z.t60, z.t120) %}<td class="{{ w | klasse }}">{{ '%+.0f' | format(w) ~ '%' if w is not none else '–' }}</td>{% endfor %}
+        <td class="minus">{{ '%+.0f' | format(z.tief) }}%</td><td class="{{ z.heute | klasse }} fett">{{ '%+.0f' | format(z.heute) }}%</td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+  <p class="vermerk">Gemessen ab Schlusskurs des ersten Handelstags (wer zum Ausgabepreis zeichnen konnte, hatte meist einen tieferen Einstieg).</p>
+  {% endif %}
+</section>
+
+{# ============================ Kommende IPOs ============================ #}
+<section class="reiter-inhalt" data-id="kalender">
+  {% if kalender %}
+  {% for titel, art, datum_titel in (("Kommende Börsengänge", "kommend", "Preis erwartet"), ("Kürzlich bewertet", "bewertet", "Preis festgesetzt"), ("Neu angemeldet", "angemeldet", "Angemeldet")) %}
+  <h3 class="unterrubrik">{{ titel }}</h3>
+  {% if kalender[art] %}
+  <div class="tabelle-rahmen"><table class="tabelle">
+    <thead><tr><th>Firma</th><th>Ticker</th><th class="links">Börse</th><th>Preis (USD)</th><th>Volumen (Mio. USD)</th><th>{{ datum_titel }}</th></tr></thead>
+    <tbody>{% for z in kalender[art][:15] %}
+      <tr class="{{ 'wichtig' if z.ticker == cfg.firma.ticker }}"><td>{{ z.firma }}</td><td class="fett">{{ z.ticker }}</td><td class="links grau">{{ z.boerse }}</td>
+        <td>{{ z.preis or '–' }}</td><td>{{ (z.volumen / 1e6) | zahl(0) if z.volumen else '–' }}</td><td class="grau">{{ z.datum }}</td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+  {% else %}<p class="vermerk">Keine Einträge.</p>{% endif %}
+  {% endfor %}
+  <p class="vermerk">Quelle: Nasdaq IPO-Kalender (USA), dieser und nächster Monat.</p>
+  {% else %}<p class="vermerk">IPO-Kalender nicht verfügbar.</p>{% endif %}
+</section>
+
+{# ============================ News & Unterlagen ============================ #}
+<section class="reiter-inhalt" data-id="news">
+  <div class="spalten">
+    <div>
+      <h3 class="unterrubrik">Alle Schlagzeilen zu Anthropic (7 Tage)</h3>
+      {{ m.newsliste(news) }}
+    </div>
+    <aside>
+      <h3 class="unterrubrik">Bloomberg</h3>
+      {{ m.newsliste(bloomberg, kompakt=True) }}
+      <h3 class="unterrubrik">Offizielle Unterlagen (SEC)</h3>
+      {% if unterlagen %}
+      <ul class="newsliste kompakt">{% for u in unterlagen %}
+        <li><a href="{{ u.link }}" target="_blank" rel="noopener">{{ u.formular }}</a>
+          <div class="meta">{{ u.datum }} · {{ {'S-1':'Börsenprospekt','S-1/A':'Nachtrag zum Prospekt','FWP':'Zusatzmaterial (Free Writing Prospectus)','8-A12B':'Registrierung der Aktien','424B4':'Endgültiger Prospekt','DRS/A':'Vertraulicher Entwurf'}.get(u.formular, 'Mitteilung') }}</div></li>
+      {% endfor %}</ul>
+      {% else %}<p class="vermerk">SEC nicht erreichbar.</p>{% endif %}
+    </aside>
+  </div>
+</section>
+
+<p class="vermerk" style="margin-top:28px">Transparenzhinweis: Dieses Terminal wurde mit Claude gebaut, einem KI-Assistenten von Anthropic.
+Die Seite verwendet nur öffentliche Quellen und offengelegte, anpassbare Annahmen. Keine Anlageberatung.</p>
+{% endif %}
+{% endblock %}

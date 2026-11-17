@@ -20,7 +20,7 @@
 {%- endmacro %}
 
 {% macro etikett(art) -%}
-<span class="etikett {{ 'fed' if art in ('Fed-Rede', 'Anhörung') else 'fomc' if art == 'FOMC' else 'zahlen' if art == 'Quartalszahlen' }}">{{ art }}</span>
+<span class="etikett {{ 'fed' if art in ('Fed-Rede', 'Anhörung') else 'fomc' if art in ('FOMC', 'IPO') else 'zahlen' if art == 'Quartalszahlen' }}">{{ art }}</span>
 {%- endmacro %}
 
 {# Termine nach Tagen gruppiert (für die Termine-Seite und Themen) #}

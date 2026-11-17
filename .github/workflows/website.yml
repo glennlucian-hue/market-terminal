@@ -9,6 +9,7 @@
 #  Benötigte Secrets (Settings -> Secrets and variables -> Actions):
 #    SITE_PASSWORT  (Pflicht)  Passwort für die Website
 #    FRED_API_KEY   (optional) dein FRED-Schlüssel
+#    SEC_KONTAKT    (optional) deine E-Mail – von der US-Börsenaufsicht SEC für Abfragen verlangt
 # ==========================================================================
 name: Website aktualisieren
 
@@ -55,6 +56,7 @@ jobs:
       - name: Website bauen
         env:
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+          SEC_KONTAKT: ${{ secrets.SEC_KONTAKT }}
           TZ: Europe/Zurich
         run: python main.py --nicht-oeffnen
 

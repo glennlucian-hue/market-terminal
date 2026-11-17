@@ -73,6 +73,14 @@ und passwortgeschützt veröffentlicht – dein PC muss dafür nicht laufen.
 Der Programmcode ist öffentlich einsehbar (Gratis-Bedingung von GitHub Pages), enthält aber keine Schlüssel.
 Die Website-Inhalte selbst sind mit deinem Passwort verschlüsselt (StatiCrypt, AES-256).
 
+### Seite «Anthropic & IPOs»
+- Die Prospekt-Zahlen stehen in **`anthropic.yaml`**. Nach der Preisfestsetzung dort `ausgabepreis:` eintragen
+  (z. B. `ausgabepreis: 80.0`) – Bewertung und Szenarien rechnen dann damit. Ab dem ersten Handelstag
+  übernimmt das Terminal den Börsenkurs automatisch, ebenso Risiko-Kennzahlen und Gamma (sobald Optionen gehandelt werden).
+- Szenario-Annahmen (Wachstum, Multiplikatoren, Wahrscheinlichkeiten) sind in derselben Datei erklärt und änderbar.
+- **SEC-Kontakt (empfohlen):** Die US-Börsenaufsicht verlangt bei automatischen Abfragen eine Kontaktangabe.
+  Lege dafür ein Secret `SEC_KONTAKT` mit deiner E-Mail an (wie `SITE_PASSWORT`, siehe oben) bzw. trage sie lokal in `.env` ein.
+
 ## 4. Die Seiten
 
 | Seite | Inhalt |
@@ -82,6 +90,7 @@ Die Website-Inhalte selbst sind mit deinem Passwort verschlüsselt (StatiCrypt, 
 | **Makro & Zinsen** | US-Zinskurve, Renditen, Leitzins, Inflation, Arbeitsmarkt, Kreditrisiko, Liquidität |
 | **Positionierung** | CTA-Modell (eigene Schätzung) mit Auslöser-Niveaus, CFTC-Daten zu S&P 500, Gold, Öl |
 | **Themen** | Fed, Gold/Bitcoin/Liquidität, Nvidia & KI, Strait of Hormuz, CTA, Schweiz – mit Daten und Schlagzeilen |
+| **Anthropic & IPOs** | Börsengang, Fundamentaldaten aus dem SEC-Prospekt, Bewertung vs. Vergleichsfirmen, Bear/Neutral/Bull-Szenarien, Sharpe/Beta/Gamma, Vergleich früherer IPOs, IPO-Kalender, News (inkl. Bloomberg) und SEC-Unterlagen |
 | **Termine** | Fed-Reden, FOMC, Quartalszahlen der nächsten 3 Wochen (Schweizer Zeit) |
 | **News** | Alle Schlagzeilen, filterbar nach Thema |
 | **Datenstatus** | Welche Daten geladen wurden und was fehlgeschlagen ist |
