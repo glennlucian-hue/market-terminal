@@ -10,7 +10,7 @@ Einstellungen in <code>vergleich.yaml</code>.</p>
 {# ---------------- Firmen-Kacheln ---------------- #}
 <div class="vergleich-kopf">
   {% for f in ok %}
-  <div class="vk" style="border-top-color: {{ ['#0f5499','#e0703a','#00897b'][loop.index0] }}">
+  <div class="vk" style="border-top-color: {{ f.farbe }}">
     <div class="vk-name">{{ f.name }} <span class="tk">{{ f.ticker }}</span></div>
     <div class="vk-region">{{ f.region }}</div>
     <div class="vk-kurs">{{ f.preis | zahl(2) }} <span>{{ f.waehrung }}</span></div>
@@ -43,7 +43,7 @@ Einstellungen in <code>vergleich.yaml</code>.</p>
       <div class="rang-inhalt">
         <div class="rang-kopf"><b>{{ f.name }}</b> <span class="tk">{{ f.ticker }}</span>
           <span class="rang-punkte">{{ '%.1f' | format(r.punkte) }} Punkte</span></div>
-        <div class="rang-balken"><span style="width: {{ (r.punkte / max_punkte * 100) | round }}%; background: {{ ['#0f5499','#e0703a','#00897b'][ok.index(f)] }}"></span></div>
+        <div class="rang-balken"><span style="width: {{ (r.punkte / max_punkte * 100) | round }}%; background: {{ f.farbe }}"></span></div>
         <p>{% if f.staerken %}<b>Stärken:</b> {{ f.staerken | join(', ') }}. {% endif %}
            {% if f.schwaechen %}<b>Schwächen:</b> {{ f.schwaechen | join(', ') }}. {% endif %}
            {% if f.kgv | length > 1 and f.kgv[1].kgv %}Erwartetes KGV 2027: {{ '%.1f' | format(f.kgv[1].kgv) }}x{% endif %}{% if f.eps_wachstum is not none %}, Gewinnwachstum {{ '%+.0f' | format(f.eps_wachstum) }}%{% endif %}{% if f.potenzial is not none %}, Analysten-Kursziel {{ f.kursziel | zahl(0) }} USD ({{ '%+.0f' | format(f.potenzial) }}%){% endif %}.

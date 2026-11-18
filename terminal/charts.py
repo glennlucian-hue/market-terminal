@@ -15,13 +15,19 @@ import pandas as pd
 import plotly.graph_objects as go
 from markupsafe import Markup, escape
 
-# Farbpalette (FT/Bloomberg-artig, auf Farbenblind-Tauglichkeit geprüft). Reihenfolge nicht ändern.
-FARBEN = ["#0f5499", "#e0703a", "#00897b", "#990f3d", "#9a8a00"]
-TINTE = "#1a1817"
-GRAU = "#6b6560"
-RASTER = "#e9e6e2"
-ACHSE = "#8c857e"
-SCHRIFT = "Inter, 'Segoe UI', Helvetica, Arial, sans-serif"
+# Terminal-Farbschema (schwarz, Bernstein). Palette auf schwarzem Hintergrund geprüft
+# (Helligkeit, Farbenblind-Tauglichkeit, Kontrast). Reihenfolge nicht ändern.
+FARBEN = ["#cc8000", "#2a96d4", "#d0569f", "#8a78ee", "#3aa776"]
+HINTERGRUND = "#000000"
+TINTE = "#e6e6e6"        # Haupttext
+GRAU = "#8f8f8f"         # Achsenbeschriftung
+RASTER = "#1c1c1c"       # Gitterlinien
+ACHSE = "#4a4a4a"        # Achsen und Nulllinien
+KONTEXT = "#4d4d4d"      # graue Hintergrund-Linien (z. B. frühere IPOs)
+MARKE = "#6e6e6e"        # Pivot-Linien u. Ä.
+BETONUNG = "#ffa31a"     # Bernstein für Hervorhebungen (Text)
+KASTEN_TEXT = "#000000"  # Schrift in den farbigen Wertkästchen
+SCHRIFT = "'IBM Plex Mono', Consolas, 'Courier New', monospace"
 
 ZEITRAEUME = [("1M", 31), ("3M", 92), ("6M", 183), ("YTD", "ytd"), ("1J", 365), ("2J", 730)]
 _zaehler = itertools.count(1)
@@ -60,12 +66,12 @@ def _tickformat(werte: pd.Series, einheit: str) -> str:
 def _layout(fig: go.Figure, hoehe: int, legende: bool, einheit: str, werte: pd.Series, rechts: int = 64):
     fig.update_layout(
         height=hoehe, margin=dict(l=4, r=rechts, t=28 if legende else 8, b=28),
-        paper_bgcolor="#ffffff", plot_bgcolor="#ffffff",
+        paper_bgcolor=HINTERGRUND, plot_bgcolor=HINTERGRUND,
         font=dict(family=SCHRIFT, size=11, color=GRAU), separators=".’",
         hovermode="x unified", showlegend=legende,
         legend=dict(orientation="h", x=0, y=1.02, yanchor="bottom", font=dict(size=11, color=TINTE),
                     bgcolor="rgba(0,0,0,0)"),
-        hoverlabel=dict(bgcolor="#ffffff", bordercolor=ACHSE, font=dict(color=TINTE, family=SCHRIFT)),
+        hoverlabel=dict(bgcolor="#111111", bordercolor=BETONUNG, font=dict(color=TINTE, family=SCHRIFT)),
         xaxis=dict(showgrid=False, showline=True, linecolor=ACHSE, ticks="outside", tickcolor=ACHSE,
                    ticklen=4, showspikes=True, spikemode="across", spikecolor=ACHSE,
                    spikethickness=1, spikedash="dot"),
@@ -81,7 +87,7 @@ def _html(fig: go.Figure, div_id: str) -> str:
 
 def _letzter_wert(fig, wert: float, farbe: str, einheit: str):
     fig.add_annotation(x=1, xref="paper", xanchor="left", y=wert, yref="y", showarrow=False,
-                       text=f"<b>{_fmt(wert, einheit)}</b>", font=dict(color="#ffffff", size=11),
+                       text=f"<b>{_fmt(wert, einheit)}</b>", font=dict(color=KASTEN_TEXT, size=11),
                        bgcolor=farbe, borderpad=3, xshift=2)
 
 
@@ -119,7 +125,7 @@ def linien(serien: dict[str, pd.Series], *, titel: str, untertitel: str, quelle:
             x=s.index.strftime("%Y-%m-%d").tolist(), y=[round(float(v), 4) for v in s.values], name=name,
             mode="lines", line=dict(color=farbe, width=2),
             fill="tozeroy" if flaeche and len(serien) == 1 else None,
-            fillcolor="rgba(15,84,153,0.07)",
+            fillcolor="rgba(204,128,0,0.10)",
             hovertemplate=f"%{{y:{_tickformat(alle, einheit)}}}{'%' if einheit == '%' else ''}"
                           f"<extra>{escape(name)}</extra>"))
         _letzter_wert(fig, float(s.iloc[-1]), farbe, einheit)
@@ -133,7 +139,7 @@ def linien(serien: dict[str, pd.Series], *, titel: str, untertitel: str, quelle:
     if nulllinie:
         fig.add_hline(y=0, line=dict(color=ACHSE, width=1))
     for wert, text in marken or []:  # z. B. Pivot-Punkte: gepunktete Linie mit Beschriftung links
-        fig.add_hline(y=wert, line=dict(color="#a7a29c", width=1, dash="dot"), annotation_text=text,
+        fig.add_hline(y=wert, line=dict(color=MARKE, width=1, dash="dot"), annotation_text=text,
                       annotation_position="top left", annotation_font=dict(size=10, color=GRAU))
     if marken:
         sichtbar = _verbinde([sichtbar, pd.Series([w for w, _ in marken])])
@@ -161,7 +167,7 @@ def balken_mit_schnitt(taeglich: pd.Series, schnitt: pd.Series, *, titel: str, u
     div_id = f"chart{next(_zaehler)}"
     fig = go.Figure()
     fig.add_trace(go.Bar(x=taeglich.index.strftime("%Y-%m-%d").tolist(), y=taeglich.tolist(), name=name_balken,
-                         marker=dict(color="#b9c9dc", line=dict(width=0)),
+                         marker=dict(color="#3a3a3a", line=dict(width=0)),
                          hovertemplate="%{y:.0f}<extra>" + escape(name_balken) + "</extra>"))
     fig.add_trace(go.Scatter(x=schnitt.index.strftime("%Y-%m-%d").tolist(), y=schnitt.round(1).tolist(),
                              name=name_schnitt, mode="lines", line=dict(color=FARBEN[0], width=2),
@@ -178,10 +184,10 @@ def kurve(kurven: dict[str, pd.Series], *, titel: str, untertitel: str, quelle: 
     """Zinskurve: x = Laufzeiten (Kategorien), mehrere Stichtage als Linien mit Punkten."""
     div_id = f"chart{next(_zaehler)}"
     fig = go.Figure()
-    for (name, s), farbe in zip(kurven.items(), [FARBEN[0], FARBEN[1], "#a7a29c"]):
+    for (name, s), farbe in zip(kurven.items(), [FARBEN[0], FARBEN[1], KONTEXT]):
         fig.add_trace(go.Scatter(x=list(s.index), y=s.round(2).tolist(), name=name, mode="lines+markers",
                                  line=dict(color=farbe, width=2), marker=dict(size=8, color=farbe,
-                                 line=dict(color="#ffffff", width=2)),
+                                 line=dict(color=HINTERGRUND, width=2)),
                                  hovertemplate="%{y:.2f}%<extra>" + escape(name) + "</extra>"))
     werte = _verbinde(kurven.values())
     _layout(fig, hoehe, True, "%", werte, rechts=12)
@@ -252,15 +258,15 @@ def linien_xy(serien: dict[str, tuple[list, list]], *, titel: str, untertitel: s
         fig.add_trace(go.Scatter(x=list(x), y=[round(float(v), 2) for v in y], name=name, mode="lines",
                                  line=dict(color=farbe, width=2, dash="dash" if name in gestrichelt else None),
                                  hovertemplate=f"%{{y:,.1f}}<extra>{escape(name)}</extra>"))
-        if farbe != "#c9c4be":  # graue Hintergrund-Linien ohne Wertkästchen
+        if farbe != KONTEXT:  # graue Hintergrund-Linien ohne Wertkästchen
             _letzter_wert(fig, float(y[-1]), farbe, einheit)
         alle += [float(v) for v in y]
     _layout(fig, hoehe, len(serien) > 1, einheit, pd.Series(alle))
     fig.update_xaxes(showspikes=True, title=dict(text=x_titel, font=dict(size=11)) if x_titel else None)
     if band:
-        fig.add_hrect(y0=band[0], y1=band[1], fillcolor="rgba(153,15,61,0.08)", line_width=0,
+        fig.add_hrect(y0=band[0], y1=band[1], fillcolor="rgba(255,163,26,0.10)", line_width=0,
                       annotation_text=band_text, annotation_position="top right",
-                      annotation_font=dict(size=11, color="#990f3d"))
+                      annotation_font=dict(size=11, color=BETONUNG))
     if referenz is not None:
         fig.add_hline(y=referenz, line=dict(color=ACHSE, width=1))
     return figur(titel, untertitel, quelle, _html(fig, div_id), hinweis=hinweis, breit=breit)

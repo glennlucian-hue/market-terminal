@@ -110,6 +110,8 @@ def baue(d) -> dict:
         firmen.append(f)
 
     ok = [f for f in firmen if f["ok"]]
+    for f, farbe in zip(ok, FARBEN):
+        f["farbe"] = farbe
     ctx = {"cfg": cfg, "firmen": firmen, "zins": zins * 100, "usdchf": usdchf}
     if not ok:
         return ctx
@@ -136,7 +138,7 @@ def baue(d) -> dict:
             titel=f"{f['name']} ({f['ticker']}): Kurs, Trendlinien und Pivot-Punkte",
             untertitel=f"in {f['waehrung']} · Pivot-Punkte aus dem Vormonat ({p['basis']:%m/%Y})",
             quelle=f"{Q_Y}; eigene Berechnung", start_tage=183, hoehe=320,
-            farben=[farbe, "#8c857e", "#c9c4be"],
+            farben=[farbe, "#9a9a9a", "#5a5a5a"],
             marken=[(p["R2"], "R2"), (p["R1"], "R1"), (p["P"], "Pivot"), (p["S1"], "S1"), (p["S2"], "S2")])
     namen = [f["name"] for f in ok]
     ctx["chart_kgv"] = charts.balken(

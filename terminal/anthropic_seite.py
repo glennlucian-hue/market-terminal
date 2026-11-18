@@ -17,7 +17,7 @@ from .konfiguration import PROJEKT
 from .quellen import cboe, ipo, news, sec, yahoo
 
 Q_PROSPEKT = "Anthropic, Form S-1/A vom 17.11.2026 (SEC)"
-FARBE_SZENARIO = {"bull": charts.FARBEN[2], "neutral": charts.FARBEN[0], "bear": charts.FARBEN[3]}
+FARBE_SZENARIO = {"bull": charts.FARBEN[4], "neutral": charts.FARBEN[0], "bear": charts.FARBEN[2]}  # grün / bernstein / magenta
 
 
 def lade_konfig() -> dict:
@@ -143,7 +143,7 @@ def baue(d, marktlage: dict) -> dict:
     ctx["chart_ergebnis"] = charts.balken(
         namen, [x["betriebsergebnis"] / 1000 for x in q], titel="Betriebsergebnis pro Quartal",
         untertitel="in Mrd. USD (negativ = Verlust)", quelle=Q_PROSPEKT,
-        farben=[charts.FARBEN[2] if x["betriebsergebnis"] >= 0 else charts.FARBEN[3] for x in q],
+        farben=[charts.FARBEN[4] if x["betriebsergebnis"] >= 0 else charts.FARBEN[2] for x in q],
         beschriftung=[f"{x['betriebsergebnis'] / 1000:+.1f}" for x in q],
         hinweis="Q2 2026 erstmals operativ in der Gewinnzone, Q3 wieder knapp negativ.")
     ctx["chart_kosten"] = charts.balken(
@@ -177,7 +177,7 @@ def baue(d, marktlage: dict) -> dict:
             kat, werte, horizontal=True, titel="Bewertung im Vergleich: Börsenwert / Umsatz",
             untertitel=f"Vergleichsfirmen: Umsatz der letzten 12 Monate · Anthropic: Run-Rate, Preis {basis:.2f} USD ({ctx['basis_text']})",
             quelle="SEC-Finanzberichte (Umsatz, Aktien), Yahoo Finance (Kurse); eigene Berechnung",
-            farben=[charts.FARBEN[0]] * len(peers) + [charts.FARBEN[3]],
+            farben=[charts.FARBEN[1]] * len(peers) + [charts.FARBEN[0]],
             beschriftung=[f"{w:.1f}x" for w in werte], hoehe=320)
 
     # --- Szenarien -----------------------------------------------------------------
@@ -267,12 +267,12 @@ def baue(d, marktlage: dict) -> dict:
                 titel=f"{gamma_ticker}: Gamma-Exposure der Options-Händler nach Ausübungspreis",
                 untertitel=f"Mio. USD je 1 % Kursbewegung · Optionen mit Verfall in ≤ {g['max_tage']} Tagen · Kurs {s:.2f} USD",
                 quelle="Cboe (verzögerte Optionsdaten); eigene Berechnung", breit=True, hoehe=320,
-                farben=[charts.FARBEN[0] if v >= 0 else charts.FARBEN[3] for v in js.values],
+                farben=[charts.FARBEN[1] if v >= 0 else charts.FARBEN[2] for v in js.values],
                 beschriftung=["" for _ in js.values],
                 linie_bei=list(js.index).index(min(js.index, key=lambda x: abs(x - s))),  # Position des nächsten Strikes
                 linie_text=f"Kurs {s:.2f}",
                 hinweis="Blau: Händler bremsen Bewegungen (kaufen bei Rückgang, verkaufen bei Anstieg). "
-                        "Bordeaux: Händler verstärken Bewegungen.")
+                        "Magenta: Händler verstärken Bewegungen.")
 
     # --- IPO-Vergleich -----------------------------------------------------------------
     verlauf = {name: risiko.ipo_verlauf(s) for name, s in ipo_reihen.items()}
@@ -288,18 +288,18 @@ def baue(d, marktlage: dict) -> dict:
         mitte_pfad = df.median(axis=1).dropna()
         serien = {n: (list(v.index), list(v.values)) for n, v in verlauf.items()}
         serien["Median der IPOs"] = (list(mitte_pfad.index), list(mitte_pfad.values))
-        grau = ["#c9c4be"] * len(verlauf)
+        grau = [charts.KONTEXT] * len(verlauf)
         farben_ipo = grau + [charts.FARBEN[0]]
         if ant is not None and len(ant) > 1:
             av = risiko.ipo_verlauf(ant)
             serien["Anthropic"] = (list(av.index), list(av.values))
-            farben_ipo.append(charts.FARBEN[3])
+            farben_ipo.append(charts.FARBEN[2])
         ctx["chart_ipos"] = charts.linien_xy(
             serien, titel="Wie liefen grosse Tech-Börsengänge nach dem ersten Handelstag?",
             untertitel="Schlusskurs Tag 1 = 100, x-Achse: Handelstage seit Börsengang",
             quelle="Yahoo Finance; eigene Berechnung", farben=farben_ipo, breit=True, hoehe=340,
             x_titel="Handelstage seit Börsengang", referenz=100,
-            hinweis="Grau: einzelne Börsengänge, Blau: Median. Der Ausgabepreis selbst ist nicht enthalten (nur Börsenkurse).")
+            hinweis="Grau: einzelne Börsengänge, Bernstein: Median. Der Ausgabepreis selbst ist nicht enthalten (nur Börsenkurse).")
 
     # --- News & Unterlagen ---------------------------------------------------------------
     artikel = []
