@@ -4,3 +4,4 @@ cache/
 website/
 __pycache__/
 CLAUDE.md
+app/node_modules/

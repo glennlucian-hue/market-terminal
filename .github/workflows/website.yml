@@ -67,6 +67,15 @@ jobs:
           TZ: Europe/Zurich
         run: python main.py --nicht-oeffnen
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Terminal-App 2.0 bauen
+        run: cd app && npm ci --no-audit --no-fund && npm run build
+
       - name: Zwischenspeicher sichern
         if: always()
         uses: actions/cache/save@v4

@@ -179,7 +179,24 @@ class Sammlung:
         relevante = set(KI_KORB) | {w["ticker"] for g in self.watchlist["gruppen"] for w in g["werte"]}
         try:
             from kern.sammeln import sammle
-            self.kern = sammle(sorted(t for t in yahoo_ticker if t.isupper()), relevante)
+            struktur = [{"gruppe": g["name"], "werte": [{"ticker": w["ticker"], "name": w["name"], "art": w["art"],
+                                                       "quelle": w["quelle"]} for w in g["werte"]]}
+                        for g in self.watchlist["gruppen"]]
+            self.kern = sammle(sorted(t for t in yahoo_ticker if t.isupper()), relevante, struktur)
+            # FRED-Serien der Watchlist (z. B. US-Renditen) als Kurse und Verlauf ergänzen
+            for w in (w for g in self.watchlist["gruppen"] for w in g["werte"] if w["quelle"] == "fred"):
+                reihe = self.fred.get(w["ticker"])
+                if reihe is None or len(reihe) < 2:
+                    continue
+                self.kern["kurse"][w["ticker"]] = {
+                    "ok": True, "quelle": "fred", "art": "offiziell", "abgerufen": self.kern["erstellt"], "versuche": [],
+                    "daten": {"symbol": w["ticker"], "kurs": float(reihe.iloc[-1]), "vortag": float(reihe.iloc[-2]),
+                              "veraenderung_pct": None, "stand": reihe.index[-1].strftime("%Y-%m-%dT00:00:00+00:00"),
+                              "waehrung": "%"}}
+                teil = reihe.iloc[-400:]
+                self.kern["historie"][w["ticker"]] = {"t": [x.strftime("%Y-%m-%d") for x in teil.index],
+                                                      "c": [round(float(v), 4) for v in teil.values],
+                                                      "waehrung": "%", "quelle": "fred", "art": "offiziell"}
             if os.getenv("GITHUB_ACTIONS") == "true":   # Status als öffentlicher Hinweis (nie Schlüssel)
                 for q in self.kern.get("status", []):
                     print(f"::{'notice' if q['ok'] else 'warning'} title={q['quelle']}::"

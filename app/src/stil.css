@@ -1,0 +1,103 @@
+/* Market Terminal 2.0 – dunkles Anthrazit, Bernstein-Akzente, dichte Panels. Farben zentral hier. */
+:root {
+  --grund: #121417;         /* Hintergrund */
+  --panel: #16191d;         /* Panel-Fläche */
+  --leiste: #1d2126;        /* Titelleisten */
+  --linie: #2a2f35;
+  --tinte: #e4e6e8;
+  --tinte-2: #b8bdc3;
+  --grau: #8a9097;
+  --akzent: #ffa31a;
+  --akzent-d: #cc8000;
+  --plus: #3ccf6e;
+  --minus: #ff5c5c;
+  --link: #5ab8f2;
+  --mono: "IBM Plex Mono", Consolas, monospace;
+  --sans: "IBM Plex Sans", "Segoe UI", Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body, #root { margin: 0; height: 100%; background: var(--grund); color: var(--tinte); }
+body { font: 12.5px/1.4 var(--sans); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+a { color: var(--link); text-decoration: none; } a:hover { color: var(--akzent); }
+button { font: 600 11px var(--mono); color: var(--tinte-2); background: #20252b; border: 1px solid #333a42; padding: 2px 8px; cursor: pointer; }
+button:hover { color: var(--akzent); border-color: var(--akzent-d); }
+button.aktiv { background: var(--akzent); color: #000; border-color: var(--akzent); }
+.grau { color: var(--grau); } .plus { color: var(--plus); } .minus { color: var(--minus); } .neutral { color: var(--grau); }
+.fett { font-weight: 700; color: #fff; }
+
+/* ---------- Anmeldung ---------- */
+.anmeldung { min-height: 100%; display: grid; place-items: center; padding: 16px; }
+.anmeldung form { width: min(420px, 100%); background: var(--panel); border: 1px solid var(--linie); border-top: 3px solid var(--akzent); padding: 22px; display: grid; gap: 10px; }
+.anmeldung .marke { font: 700 20px var(--mono); color: var(--akzent); letter-spacing: .08em; }
+.anmeldung input[type=password] { font: 15px var(--mono); padding: 9px 10px; background: #0e1012; color: #fff; border: 1px solid #333a42; }
+.anmeldung input[type=password]:focus { outline: none; border-color: var(--akzent); }
+.anmeldung label { font-size: 12px; color: var(--tinte-2); display: flex; gap: 6px; align-items: center; }
+.anmeldung button { padding: 8px; font-size: 13px; background: var(--akzent); color: #000; border: 0; }
+.anmeldung button:disabled { opacity: .5; }
+.vermerk { font: 11px var(--mono); color: #6f767d; }
+
+/* ---------- Kopfbereich ---------- */
+.terminal { min-height: 100%; display: flex; flex-direction: column; width: 100%; max-width: 100vw; }
+.terminal > * { min-width: 0; max-width: 100%; }  /* verhindert, dass breite Inhalte die Seite verbreitern */
+.statuszeile { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; background: var(--akzent); color: #000; font: 600 11.5px var(--mono); padding: 3px 10px; text-transform: uppercase; }
+.statuszeile .marke { font-weight: 700; letter-spacing: .08em; }
+.statuszeile-rechts { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+.statuszeile a { color: #000; text-decoration: underline; text-transform: none; }
+.statuszeile button { background: #000; color: var(--akzent); border-color: #000; }
+.befehlszeile { display: flex; align-items: center; gap: 8px; background: #0e1012; border-bottom: 1px solid var(--linie); padding: 4px 10px; }
+.befehlszeile .prompt { color: var(--akzent); font: 700 16px var(--mono); }
+.befehlszeile input { flex: 1 1 320px; min-width: 0; background: transparent; border: 0; color: #fff; font: 14px var(--mono); padding: 4px 0; text-transform: uppercase; }
+.befehlszeile input::placeholder { text-transform: none; color: #5d646b; }
+.befehlszeile input:focus { outline: none; }
+.befehlszeile .meldung { font: 11px var(--mono); color: var(--grau); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 45%; }
+.laufband { display: flex; gap: 0; overflow-x: auto; background: #0b0d0f; border-bottom: 1px solid var(--linie); font: 11.5px var(--mono); scrollbar-width: none; }
+.laufband span { padding: 4px 12px; border-right: 1px solid var(--linie); white-space: nowrap; cursor: pointer; }
+.laufband span:hover { background: #1a1e23; }
+.laufband b { color: var(--akzent); font-weight: 600; margin-right: 4px; text-transform: uppercase; }
+.laufband i { font-style: normal; }
+.arbeitsflaeche { flex: 1; padding: 2px 4px 20px; }
+
+/* ---------- Panels ---------- */
+.panel { height: 100%; display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--linie); }
+.panel-kopf { display: flex; align-items: center; gap: 8px; padding: 4px 8px; background: var(--leiste); border-bottom: 1px solid var(--linie); cursor: move; user-select: none; }
+.panel-titel { font: 700 11.5px var(--mono); color: var(--akzent); text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.panel-rechts { margin-left: auto; cursor: default; font: 11px var(--mono); }
+.panel-inhalt { flex: 1; overflow: auto; min-height: 0; scrollbar-width: thin; scrollbar-color: #39404a var(--panel); }
+.panel-fuss { display: flex; gap: 12px; flex-wrap: wrap; padding: 2px 8px; border-top: 1px solid var(--linie); font: 10px var(--mono); color: #6f767d; }
+.panel-fuss .art { color: var(--akzent-d); }
+.keine-daten { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 80px; gap: 4px; color: var(--minus); font: 700 12px var(--mono); text-transform: uppercase; padding: 10px; text-align: center; }
+.keine-daten span { color: var(--grau); font-weight: 400; text-transform: none; }
+.knopfgruppe { display: inline-flex; gap: 2px; align-items: center; }
+.chart-ver { margin-right: 8px; font-weight: 600; }
+.chart-kopf { padding: 4px 8px 0; font: 15px var(--mono); }
+.chart { height: calc(100% - 26px); min-height: 140px; }
+.mini-info { font: 10.5px var(--mono); color: var(--grau); padding: 3px 8px; }
+
+/* ---------- Tabellen ---------- */
+table.tabelle { width: 100%; border-collapse: collapse; font: 12px var(--mono); }
+.tabelle th { position: sticky; top: 0; background: var(--leiste); color: var(--akzent); font-size: 10.5px; font-weight: 600; text-transform: uppercase; text-align: right; padding: 4px 7px; border-bottom: 1px solid #333a42; cursor: pointer; white-space: nowrap; }
+.tabelle td { text-align: right; padding: 3px 7px; border-bottom: 1px solid #1f2328; white-space: nowrap; }
+.tabelle .links { text-align: left; }
+.tabelle tbody tr { cursor: default; }
+.tabelle tbody tr:hover td { background: #1c2026; }
+.tabelle tr.aktiv td { background: #2a2110; }
+.tabelle .tk { color: var(--grau); font-size: 10.5px; margin-left: 6px; }
+.tabelle .whg { color: var(--grau); font-size: 10px; margin-left: 3px; font-weight: 400; }
+.tabelle tr.tageszeile td { text-align: left; color: var(--akzent); font-weight: 700; font-size: 11px; background: #121417; padding-top: 6px; }
+.tabelle tr.wichtig td { background: #221a08; }
+.etikett { font: 600 9.5px var(--mono); padding: 1px 5px; text-transform: uppercase; }
+.etikett.makro { background: #12301f; color: #4fd18b; } .etikett.zahlen { background: #33102a; color: #e57bbd; }
+
+/* ---------- Raster (react-grid-layout) ---------- */
+.react-grid-item.react-grid-placeholder { background: var(--akzent) !important; opacity: .15 !important; }
+.react-grid-item > .react-resizable-handle::after { border-color: var(--akzent-d) !important; }
+
+/* ---------- Schmale Bildschirme (Handy): Panels untereinander ---------- */
+.stapel { display: grid; gap: 6px; grid-template-columns: minmax(0, 1fr); }
+.stapel > div { min-height: 220px; }
+.stapel-kurse { height: 520px; } .stapel-chart { height: 360px; } .stapel-krypto, .stapel-termine, .stapel-top { height: 380px; }
+
+/* ---------- Hilfe ---------- */
+.hilfe { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: grid; place-items: center; z-index: 50; padding: 16px; }
+.hilfe-fenster { background: var(--panel); border: 1px solid var(--akzent-d); padding: 16px 18px; width: min(640px, 100%); }
+.hilfe-fenster h2 { font: 700 14px var(--mono); color: var(--akzent); margin: 0 0 8px; text-transform: uppercase; }

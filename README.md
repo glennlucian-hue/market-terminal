@@ -81,6 +81,13 @@ Die Website-Inhalte selbst sind mit deinem Passwort verschlüsselt (StatiCrypt, 
 - **SEC-Kontakt (empfohlen):** Die US-Börsenaufsicht verlangt bei automatischen Abfragen eine Kontaktangabe.
   Lege dafür ein Secret `SEC_KONTAKT` mit deiner E-Mail an (wie `SITE_PASSWORT`, siehe oben) bzw. trage sie lokal in `.env` ein.
 
+### Terminal 2.0 (Beta)
+Die neue Terminal-App erreichst du über den Knopf **«▶ Terminal 2.0 (Beta)»** oben rechts oder direkt unter
+`https://glennlucian-hue.github.io/market-terminal/app/`. Anmeldung mit demselben Passwort.
+- Panels an der Titelleiste verschieben, unten rechts vergrössern. **`/`** Befehlszeile, **`?`** Hilfe.
+- Befehle: `NVDA` (Chart), `+MELI` / `-MELI` (Watchlist), `LISTE Tech` (eigene Watchlist), `RESET` (Layout), `NEU` (Daten neu laden).
+- Anordnung und eigene Watchlists werden im jeweiligen Browser gespeichert.
+
 ## 4. Die Seiten
 
 | Seite | Inhalt |

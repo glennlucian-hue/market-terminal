@@ -236,3 +236,6 @@ footer { border-top: 1px solid var(--akzent-dunkel); padding: 10px 0 24px; font:
   .nur-druck { display: flex; }
   .figur, .kennzahl, .newsliste li { break-inside: avoid; }
 }
+
+.app-link { font: 700 12px var(--mono); color: #000; background: var(--akzent); padding: 4px 10px; text-transform: uppercase; }
+.app-link:hover { color: #000; background: #ffbb4d; }

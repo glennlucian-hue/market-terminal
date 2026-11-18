@@ -36,7 +36,23 @@ def _min_preis(liste, minimum=5.0):
     return [x for x in liste if (x.get("kurs") or 0) >= minimum]
 
 
-def sammle(watchlist_ticker: list[str] | None = None, relevante_aktien: set[str] | None = None) -> dict:
+def _historie(symbole: list[str], tage: int = 400) -> dict:
+    """Tagesschlusskurse für Charts (aus dem Yahoo-Cache, ~1 Jahr). Format: {symbol: {"t": [...], "c": [...]}}."""
+    from terminal.quellen import yahoo
+    erg = {}
+    for symbol in symbole:
+        try:
+            s, meta = yahoo.kurse(symbol, 0.25)
+        except Exception:
+            continue
+        s = s.dropna().iloc[-tage:]
+        erg[symbol] = {"t": [d.strftime("%Y-%m-%d") for d in s.index], "c": [round(float(v), 6) for v in s.values],
+                       "waehrung": meta.get("waehrung"), "quelle": "yahoo", "art": "schluss"}
+    return erg
+
+
+def sammle(watchlist_ticker: list[str] | None = None, relevante_aktien: set[str] | None = None,
+           watchlist_struktur: list[dict] | None = None) -> dict:
     relevante = GROSSE_US_FIRMEN | set(relevante_aktien or [])
     status = []
     ergebnis = {"erstellt": jetzt_utc().isoformat()}
@@ -74,6 +90,8 @@ def sammle(watchlist_ticker: list[str] | None = None, relevante_aktien: set[str]
         if symbol.isupper() and len(symbol) <= 12:
             kurse[symbol] = kurs(symbol)
     ergebnis["kurse"] = kurse
+    ergebnis["historie"] = _historie(list(kurse))
+    ergebnis["watchlist"] = watchlist_struktur or []
     ersatz = [s for s, k in kurse.items() if k["ok"] and k["quelle"] != "yahoo"]
     fehlt = [s for s, k in kurse.items() if not k["ok"]]
     status.append({"quelle": "Kurs-Ersatzkette", "ok": not fehlt,
@@ -91,7 +109,7 @@ def schreibe_pakete(daten: dict, ordner: Path) -> list[str]:
         return []
     ordner.mkdir(parents=True, exist_ok=True)
     geschrieben = []
-    for name in ("krypto", "wirtschaftstermine", "earnings", "top_bewegungen", "kurse", "status"):
+    for name in ("krypto", "wirtschaftstermine", "earnings", "top_bewegungen", "kurse", "historie", "watchlist", "status"):
         huelle = verschluesseln({"erstellt": daten["erstellt"], "inhalt": daten.get(name)}, passwort)
         (ordner / f"{name}.json.enc").write_text(json.dumps(huelle), encoding="utf-8")
         geschrieben.append(name)
