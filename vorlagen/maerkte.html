@@ -8,6 +8,7 @@ Die Liste änderst du in <code>watchlist.yaml</code>.</p>
 <div class="reiter" data-reiter>
   <button data-ziel="alle" class="aktiv">Alle Werte</button>
   {% for g in gruppen %}<button data-ziel="{{ g.id }}">{{ g.name }}</button>{% endfor %}
+  {% if krypto and krypto.coins %}<button data-ziel="krypto-markt">Krypto-Markt</button>{% endif %}
 </div>
 
 {# --- Reiter "Alle": eine kompakte Tabelle mit allem --- #}
@@ -33,4 +34,28 @@ Die Liste änderst du in <code>watchlist.yaml</code>.</p>
   <div class="raster-3">{% for c in g.charts %}{{ c }}{% endfor %}</div>
 </section>
 {% endfor %}
+{% if krypto and krypto.coins %}
+<section class="reiter-inhalt" data-id="krypto-markt">
+  {% set mk = krypto.markt %}
+  {% if mk %}
+  <div class="kennzahlen kennzahlen-4">
+    <div class="kennzahl"><div class="l">Krypto-Gesamtwert</div><div class="w">{{ (mk.marktwert_usd / 1e12) | round(2) }} Bio.</div>
+      <div class="d {{ mk.veraenderung_24h_pct | klasse }}">{{ mk.veraenderung_24h_pct | veraenderung }} <span class="grau">in 24 h · USD</span></div></div>
+    <div class="kennzahl"><div class="l">Handelsvolumen 24 h</div><div class="w">{{ (mk.volumen_usd / 1e9) | round(0) | int }} Mrd.</div><div class="d grau">USD</div></div>
+    {% for sym, anteil in mk.dominanz_pct.items() %}{% if loop.index <= 2 %}
+    <div class="kennzahl"><div class="l">Dominanz {{ sym | upper }}</div><div class="w">{{ '%.1f' | format(anteil) }}%</div><div class="d grau">Anteil am Gesamtwert</div></div>
+    {% endif %}{% endfor %}
+  </div>
+  {% endif %}
+  <div class="tabelle-rahmen"><table class="tabelle">
+    <thead><tr><th>#</th><th class="links">Coin</th><th>Kurs (USD)</th><th>24 h</th><th>7 Tage</th><th>Marktwert (USD)</th><th>Stand (UTC)</th></tr></thead>
+    <tbody>{% for c in krypto.coins %}
+      <tr><td class="grau">{{ c.rang }}</td><td class="links">{{ c.name }}<span class="tk">{{ c.symbol }}</span></td>
+        <td class="fett">{{ c.kurs | zahl }}</td>{{ m.aenderung(c.veraenderung_24h_pct) }}{{ m.aenderung(c.veraenderung_7d_pct) }}
+        <td>{{ c.marktwert | mrd }}</td><td class="grau">{{ (c.stand or '')[11:16] }}</td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+  <p class="vermerk">Quelle: CoinGecko · verzögert (wenige Minuten) · Kurse in USD.</p>
+</section>
+{% endif %}
 {% endblock %}

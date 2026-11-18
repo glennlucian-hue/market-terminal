@@ -8,6 +8,16 @@
   <div class="kennzahl"><div class="w veraltet">{{ zaehler.alt }}</div><div class="l">veraltet (Notfall-Kopie)</div></div>
   <div class="kennzahl"><div class="w minus">{{ zaehler.fehler }}</div><div class="l">fehlgeschlagen</div></div>
 </div>
+{% if quellen %}
+<h2 class="rubrik">Datenquellen (neue Provider-Schicht)</h2>
+<div class="tabelle-rahmen"><table class="tabelle">
+  <thead><tr><th>Quelle</th><th class="links">Status</th><th class="links">Hinweis</th></tr></thead>
+  <tbody>{% for q in quellen %}
+    <tr><td>{{ q.quelle }}</td><td class="links {{ 'plus' if q.ok else 'minus' }}">{{ '✔ in Ordnung' if q.ok else '✖ Problem' }}</td>
+        <td class="links umbruch grau">{{ q.grund or '–' }}</td></tr>
+  {% endfor %}</tbody>
+</table></div>
+{% endif %}
 {% if fehler %}
 <h2 class="rubrik">Fehler</h2>
 <div class="tabelle-rahmen"><table class="tabelle">

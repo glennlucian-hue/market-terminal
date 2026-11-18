@@ -22,7 +22,7 @@
 
 einstellungen:
   # Wie lange (in Stunden) geladene Kurse wiederverwendet werden.
-  cache_stunden: 4
+  cache_stunden: 0.2   # 12 Minuten – passend zum 15-Minuten-Lauf auf GitHub
 
 gruppen:
   - name: Indizes

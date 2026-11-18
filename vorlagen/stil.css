@@ -153,6 +153,7 @@ svg.mini { display: block; margin-left: auto; }
 .etikett { display: inline-block; font: 600 10px var(--mono); padding: 1px 5px; text-transform: uppercase; background: #222; color: var(--tinte-2); }
 .etikett.fed { background: #0e2a3d; color: #5ab8f2; }
 .etikett.zahlen { background: #33102a; color: #e57bbd; }
+.etikett.makro { background: #12301f; color: #4fd18b; }
 .etikett.fomc { background: #3a2500; color: var(--akzent); }
 .wichtig td, li.wichtig { background: #1c1404 !important; }
 .tabelle.termine tr.tageszeile td { font-weight: 700; font-size: 11.5px; padding-top: 10px; color: var(--akzent); text-transform: uppercase;

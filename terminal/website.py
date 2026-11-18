@@ -175,6 +175,19 @@ class Sammlung:
                 artikel += self._versuche(f"news_{begriff}", news.google_news, begriff) or []
             self.news[thema["id"]] = _sortiere_news(artikel)
 
+        self.melde("  Neue Datenquellen (Finnhub, FRED-Kalender, CoinGecko, Alpha Vantage) ...")
+        relevante = set(KI_KORB) | {w["ticker"] for g in self.watchlist["gruppen"] for w in g["werte"]}
+        try:
+            from kern.sammeln import sammle
+            self.kern = sammle(sorted(t for t in yahoo_ticker if t.isupper()), relevante)
+            if os.getenv("GITHUB_ACTIONS") == "true":   # Status als öffentlicher Hinweis (nie Schlüssel)
+                for q in self.kern.get("status", []):
+                    print(f"::{'notice' if q['ok'] else 'warning'} title={q['quelle']}::"
+                          f"{'in Ordnung' if q['ok'] else 'Problem'} {q['grund'][:150]}", flush=True)
+        except Exception as e:
+            self.kern = {}
+            self.fehler["kern_sammeln"] = f"{type(e).__name__}: {e}"
+
 
 def _sortiere_news(artikel: list[dict], anzahl: int = 12) -> list[dict]:
     gesehen, ergebnis = set(), []
@@ -239,7 +252,7 @@ def seite_maerkte(d: Sammlung, werte: list[dict]) -> dict:
                 z["mini"] = charts.mini(z["serie"], charts.FARBEN[0])
         gruppen.append({"name": g["name"], "id": anker(g["name"]), "zeilen": zeilen,
                         "charts": [_kurs_chart(z, hoehe=215) for z in zeilen]})
-    return {"gruppen": gruppen}
+    return {"gruppen": gruppen, "krypto": (getattr(d, "kern", {}) or {}).get("krypto")}
 
 
 def seite_makro(d: Sammlung) -> dict:
@@ -401,7 +414,22 @@ def _termine(d: Sammlung, tage: int = 21) -> list[dict]:
         liste += [t for t in anthropic_seite.termine() if heute <= t["datum"] <= bis]
     except Exception:
         pass
-    liste.sort(key=lambda x: (x["datum"], x["zeit"] or "99"))
+    kern = getattr(d, "kern", {}) or {}
+    for t in kern.get("wirtschaftstermine", []):
+        tag = date.fromisoformat(t["datum"])
+        if heute <= tag <= bis:
+            liste.append({"datum": tag, "zeit": "", "art": "Wirtschaftsdaten", "titel": t["ereignis"],
+                          "detail": "USA · Quelle FRED", "wichtig": t["wichtig"]})
+    schon = {(x["detail"], x["datum"]) for x in liste if x["art"] == "Quartalszahlen"}
+    for t in kern.get("earnings", []):
+        tag = date.fromisoformat(t["datum"])
+        if heute <= tag <= bis and (t["symbol"], tag) not in schon:
+            eps = f" · erwarteter Gewinn/Aktie {t['eps_schaetzung']:.2f} USD" if t.get("eps_schaetzung") else ""
+            liste.append({"datum": tag, "zeit": t["zeit"], "art": "Quartalszahlen", "titel": t["symbol"],
+                          "detail": f"Quelle Finnhub{eps}", "wichtig": t["symbol"] in ("NVDA", "AAPL", "MSFT", "ANT")})
+    for x in liste:  # Sortierschlüssel: Zeiten wie "vor Börsenbeginn" vor leeren Zeiten
+        x.setdefault("zeit", "")
+    liste.sort(key=lambda x: (x["datum"], x["zeit"] if x["zeit"][:1].isdigit() else "99"))
     vorher = None
     for x in liste:
         x["tag_text"] = datum_kurz(x["datum"])
@@ -585,7 +613,8 @@ def baue_website(watchlist: dict, themen: list[dict], melde=print):
                   "cockpit": [{**z, "mini_gross": charts.mini(z["serie"], charts.FARBEN[0], b=150, h=40),
                                "anker": anker(z["ticker"]), "gruppe_id": anker(z["gruppe"])}
                               for z in werte if z.get("band") and z["ok"]],
-                  "news": alle_news[:12], "termine": _termine(d, 7)},
+                  "news": alle_news[:12], "termine": _termine(d, 7),
+                  "top_bewegungen": (getattr(d, "kern", {}) or {}).get("top_bewegungen")},
         "maerkte": seite_maerkte(d, werte),
         "makro": seite_makro(d),
         "positionierung": seite_positionierung(d),
@@ -595,7 +624,7 @@ def baue_website(watchlist: dict, themen: list[dict], melde=print):
         "termine": {"termine": _termine(d, 21), "fred_key": bool(os.getenv("FRED_API_KEY"))},
         "news": {"news": alle_news, "themen_liste": [(t["id"], t["titel"]) for t in themen_bloecke]
                  + [("anthropic", "Anthropic"), ("fedreden", "Fed-Reden")]},
-        "status": {"protokoll": status, "fehler": d.fehler,
+        "status": {"protokoll": status, "fehler": d.fehler, "quellen": (getattr(d, "kern", {}) or {}).get("status", []),
                    "zaehler": {s: sum(1 for p in status if p["status"] == s) for s in ("ok", "cache", "alt", "fehler")}},
     }
 
@@ -603,6 +632,11 @@ def baue_website(watchlist: dict, themen: list[dict], melde=print):
     umgebung.filters.update(anker=anker, kurs=fmt_kurs, zahl=fmt_zahl, veraenderung=fmt_veraenderung, klasse=css_klasse, mrd=fmt_mrd,
                             datum=lambda x: x.strftime("%d.%m.%Y") if x else "–")
     WEBSITE_ORDNER.mkdir(exist_ok=True)
+    if getattr(d, "kern", None):
+        from kern.sammeln import schreibe_pakete
+        pakete = schreibe_pakete(d.kern, WEBSITE_ORDNER / "pakete")
+        melde(f"  Verschlüsselte Datenpakete: {len(pakete)}" if pakete else
+              "  Datenpakete übersprungen (kein SITE_PASSWORT – wird nie unverschlüsselt veröffentlicht)")
     (WEBSITE_ORDNER / "assets").mkdir(exist_ok=True)
     for datei in ("stil.css", "app.js"):
         shutil.copy(VORLAGEN_ORDNER / datei, WEBSITE_ORDNER / "assets" / datei)

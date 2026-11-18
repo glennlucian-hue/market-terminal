@@ -46,4 +46,17 @@
   </section>
 </div>
 
+{% if top_bewegungen %}
+<h2 class="rubrik">US-Markt: Top-Bewegungen <small>Stand {{ top_bewegungen.stand }} · Quelle Alpha Vantage · nur Aktien ab 5 USD</small></h2>
+<div class="raster-3">
+  {% for titel, liste in (("Gewinner", top_bewegungen.gewinner), ("Verlierer", top_bewegungen.verlierer), ("Meistgehandelt", top_bewegungen.meistgehandelt)) %}
+  <div class="tabelle-rahmen"><table class="tabelle kompakt">
+    <thead><tr><th>{{ titel }}</th><th>Kurs</th><th>Veränderung</th><th>Volumen</th></tr></thead>
+    <tbody>{% for x in liste[:8] %}
+      <tr><td>{{ x.symbol }}</td><td>{{ x.kurs | zahl(2) }}</td>{{ m.aenderung(x.veraenderung_pct) }}<td class="grau">{{ ((x.volumen or 0) / 1e6) | round(1) }} Mio.</td></tr>
+    {% else %}<tr><td colspan="4" class="grau">keine Einträge</td></tr>{% endfor %}</tbody>
+  </table></div>
+  {% endfor %}
+</div>
+{% endif %}
 {% endblock %}

@@ -10,6 +10,7 @@
 #    SITE_PASSWORT  (Pflicht)  Passwort für die Website
 #    FRED_API_KEY   (optional) dein FRED-Schlüssel
 #    SEC_KONTAKT    (optional) deine E-Mail – von der US-Börsenaufsicht SEC für Abfragen verlangt
+#    FINNHUB_API_KEY, FMP_API_KEY, ALPHAVANTAGE_API_KEY  (neue Datenquellen, Phase 1)
 # ==========================================================================
 name: Website aktualisieren
 
@@ -18,6 +19,8 @@ on:
     # 05:00 UTC = 06:00 Uhr Winterzeit / 07:00 Uhr Sommerzeit in Zürich.
     # GitHub startet geplante Läufe teils 10–30 Minuten verspätet.
     - cron: "0 5 * * *"
+    # Zusätzlich alle 15 Minuten Mo–Fr 07:00–22:45 Zürcher Winterzeit (06–21 UTC): Kurse ~15 Min. verzögert
+    - cron: "*/15 6-21 * * 1-5"
   workflow_dispatch:
   push:
     branches: [main]
@@ -57,6 +60,10 @@ jobs:
         env:
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
           SEC_KONTAKT: ${{ secrets.SEC_KONTAKT }}
+          FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
+          FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
+          ALPHAVANTAGE_API_KEY: ${{ secrets.ALPHAVANTAGE_API_KEY }}
+          SITE_PASSWORT: ${{ secrets.SITE_PASSWORT }}
           TZ: Europe/Zurich
         run: python main.py --nicht-oeffnen
 
