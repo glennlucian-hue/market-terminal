@@ -1,0 +1,184 @@
+{% extends "basis.html" %}
+{% import "makros.html" as m %}
+{% block inhalt %}
+<h1 class="seitentitel">{{ cfg.titel }}</h1>
+<p class="einleitung">Temporäre Vergleichsseite (sichtbar bis {{ cfg.anzeigen_bis }}). Alle drei Aktien werden in USD an US-Börsen gehandelt.
+Einstellungen in <code>vergleich.yaml</code>.</p>
+
+{% set ok = firmen | selectattr("ok") | list %}
+
+{# ---------------- Firmen-Kacheln ---------------- #}
+<div class="vergleich-kopf">
+  {% for f in ok %}
+  <div class="vk" style="border-top-color: {{ ['#0f5499','#e0703a','#00897b'][loop.index0] }}">
+    <div class="vk-name">{{ f.name }} <span class="tk">{{ f.ticker }}</span></div>
+    <div class="vk-region">{{ f.region }}</div>
+    <div class="vk-kurs">{{ f.preis | zahl(2) }} <span>{{ f.waehrung }}</span></div>
+    <div class="vk-zeile">
+      <span>1 M <b class="{{ f.m1 | klasse }}">{{ f.m1 | veraenderung }}</b></span>
+      <span>YTD <b class="{{ f.ytd | klasse }}">{{ f.ytd | veraenderung }}</b></span>
+      <span>1 J <b class="{{ f.j1 | klasse }}">{{ f.j1 | veraenderung }}</b></span>
+    </div>
+    <div class="vk-zeile grau">Börsenwert {{ f.boersenwert | mrd }} USD · Trend: <b>{{ f.technik.trend }}</b></div>
+    {% if f.stueck %}<div class="vk-zeile grau">1 Aktie ≈ {{ f.preis_chf | zahl(0) }} CHF → für {{ cfg.betrag_chf[0] }}–{{ cfg.betrag_chf[1] }} CHF: <b>{{ f.stueck[0] }}–{{ f.stueck[1] }} Stück</b></div>{% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+<div class="reiter" data-reiter>
+  <button data-ziel="fazit" class="aktiv">Zusammenfassung</button>
+  <button data-ziel="charts">Charts & Technik</button>
+  <button data-ziel="fundamental">Fundamentaldaten</button>
+  <button data-ziel="risiko">Risiko & Gamma</button>
+  <button data-ziel="news">Geschäft & News</button>
+</div>
+
+{# ================= Zusammenfassung ================= #}
+<section class="reiter-inhalt" data-id="fazit">
+  <h2 class="rubrik">Rangliste nach Punkten <small>max. {{ max_punkte }} Punkte · 6 Kategorien, gleich gewichtet</small></h2>
+  <div class="rangliste">
+    {% for r in rangliste %}{% set f = r.firma %}
+    <div class="rang">
+      <div class="rang-nr">{{ loop.index }}.</div>
+      <div class="rang-inhalt">
+        <div class="rang-kopf"><b>{{ f.name }}</b> <span class="tk">{{ f.ticker }}</span>
+          <span class="rang-punkte">{{ '%.1f' | format(r.punkte) }} Punkte</span></div>
+        <div class="rang-balken"><span style="width: {{ (r.punkte / max_punkte * 100) | round }}%; background: {{ ['#0f5499','#e0703a','#00897b'][ok.index(f)] }}"></span></div>
+        <p>{% if f.staerken %}<b>Stärken:</b> {{ f.staerken | join(', ') }}. {% endif %}
+           {% if f.schwaechen %}<b>Schwächen:</b> {{ f.schwaechen | join(', ') }}. {% endif %}
+           {% if f.kgv | length > 1 and f.kgv[1].kgv %}Erwartetes KGV 2027: {{ '%.1f' | format(f.kgv[1].kgv) }}x{% endif %}{% if f.eps_wachstum is not none %}, Gewinnwachstum {{ '%+.0f' | format(f.eps_wachstum) }}%{% endif %}{% if f.potenzial is not none %}, Analysten-Kursziel {{ f.kursziel | zahl(0) }} USD ({{ '%+.0f' | format(f.potenzial) }}%){% endif %}.
+           Chart: {{ f.technik.trend }}, RSI {{ '%.0f' | format(f.technik.rsi) }}{% if f.technik.unterstuetzung %}, nächste Unterstützung {{ f.technik.unterstuetzung | zahl(2) }}{% endif %}{% if f.technik.widerstand %}, nächster Widerstand {{ f.technik.widerstand | zahl(2) }}{% endif %}.</p>
+        <p class="grau"><b>Hauptrisiken:</b> {{ f.risiken }}</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <h3 class="unterrubrik">Punkte je Kategorie</h3>
+  <div class="tabelle-rahmen"><table class="tabelle">
+    <thead><tr><th>Kategorie / Kennzahl</th>{% for f in ok %}<th>{{ f.name }}</th>{% endfor %}</tr></thead>
+    <tbody>
+    {% for k in punkte %}
+      <tr class="gruppenzeile"><td>{{ k.kategorie }}</td>{% for p in k.mittel %}<td>{{ '%.1f' | format(p) }} P.</td>{% endfor %}</tr>
+      {% for z in k.zeilen %}
+      <tr><td class="grau">{{ z.name }}</td>
+        {% for w in z.werte %}{% set p = z.punkte[loop.index0] %}
+        <td class="{{ 'fett' if p == ok | length }}">{{ z.text[loop.index0] }}
+          {% if p %}<span class="grau"> · {{ '%g' | format(p) }}</span>{% endif %}</td>
+        {% endfor %}</tr>
+      {% endfor %}
+    {% endfor %}
+    <tr class="gruppenzeile"><td>Total</td>{% for f in ok %}<td>{{ '%.1f' | format(f.gesamt) }}</td>{% endfor %}</tr>
+    </tbody>
+  </table></div>
+  <div class="kasten">
+    <p><b>So ist die Rangliste entstanden:</b> Für jede Kennzahl bekommt die beste Aktie 3 Punkte, die zweitbeste 2, die schwächste 1.
+    Pro Kategorie zählt der Durchschnitt, alle 6 Kategorien zählen gleich viel. Die Rangliste ist ein Vergleichswerkzeug aus öffentlichen Daten
+    und spiegelt die heutige Momentaufnahme – <b>keine Anlageempfehlung</b>. Analystenschätzungen beruhen teils auf sehr wenigen Analysten
+    ({% for f in ok %}{{ f.ticker }}: {{ f.kgv[0].anzahl if f.kgv else 0 }}{{ ', ' if not loop.last }}{% endfor %}).</p>
+    <p><b>Für die Diversifikation:</b> Alle drei bringen Schwellenländer-Risiko (Lateinamerika, Südostasien, Kasachstan/Türkei) ins Portfolio –
+    aber nur je ein Unternehmen. Zum Vergleich: Die Korrelation zum Schwellenländer-ETF (EEM) steht im Reiter «Risiko & Gamma».</p>
+  </div>
+</section>
+
+{# ================= Charts & Technik ================= #}
+<section class="reiter-inhalt" data-id="charts">
+  <div class="raster">{{ chart_3m }}{{ chart_1j }}{{ chart_3j }}</div>
+  <h2 class="rubrik">Chart-Technik</h2>
+  <div class="tabelle-rahmen"><table class="tabelle">
+    <thead><tr><th>Indikator</th>{% for f in ok %}<th>{{ f.name }}</th>{% endfor %}</tr></thead>
+    <tbody>
+      <tr><td>Kurs</td>{% for f in ok %}<td class="fett">{{ f.technik.kurs | zahl(2) }}</td>{% endfor %}</tr>
+      <tr><td>50-Tage-Linie</td>{% for f in ok %}<td>{{ f.technik.sma50 | zahl(2) if f.technik.sma50 else '–' }}</td>{% endfor %}</tr>
+      <tr><td>200-Tage-Linie</td>{% for f in ok %}<td>{{ f.technik.sma200 | zahl(2) if f.technik.sma200 else '–' }}</td>{% endfor %}</tr>
+      <tr><td>Abstand zur 200-Tage-Linie</td>{% for f in ok %}<td class="{{ f.technik.abstand200 | klasse }}">{{ f.technik.abstand200 | veraenderung }}</td>{% endfor %}</tr>
+      <tr><td>RSI (14 Tage)</td>{% for f in ok %}<td class="{{ 'minus' if f.technik.rsi > 70 else 'plus' if f.technik.rsi < 30 }}">{{ '%.0f' | format(f.technik.rsi) }}</td>{% endfor %}</tr>
+      <tr><td>MACD</td>{% for f in ok %}<td class="{{ 'plus' if f.technik.macd_positiv else 'minus' }}">{{ 'Aufwärtsimpuls' if f.technik.macd_positiv else 'Abwärtsimpuls' }}</td>{% endfor %}</tr>
+      <tr><td>Abstand zum 52-Wochen-Hoch</td>{% for f in ok %}<td class="minus">{{ '%.1f' | format(f.technik.vom_hoch) }}%</td>{% endfor %}</tr>
+      <tr><td>Pivot R2 / R1</td>{% for f in ok %}<td>{{ f.technik.pivots.R2 | zahl(2) }} / {{ f.technik.pivots.R1 | zahl(2) }}</td>{% endfor %}</tr>
+      <tr><td>Pivot-Punkt</td>{% for f in ok %}<td class="fett">{{ f.technik.pivots.P | zahl(2) }}</td>{% endfor %}</tr>
+      <tr><td>Pivot S1 / S2</td>{% for f in ok %}<td>{{ f.technik.pivots.S1 | zahl(2) }} / {{ f.technik.pivots.S2 | zahl(2) }}</td>{% endfor %}</tr>
+      <tr><td>Gesamteinschätzung</td>{% for f in ok %}<td class="fett">{{ f.technik.trend }} ({{ f.technik.trendpunkte }}/4)</td>{% endfor %}</tr>
+    </tbody>
+  </table></div>
+  <p class="vermerk">RSI unter 30 = überverkauft, über 70 = überkauft. Pivot-Punkte aus Hoch, Tief und Schluss des Vormonats: R = mögliche Widerstände, S = mögliche Unterstützungen.</p>
+  <div class="raster">{% for f in ok %}<div class="breit-zelle">{{ f.chart_technik }}
+    <ul class="signale">{% for s in f.technik.signale %}<li>{{ s }}</li>{% endfor %}</ul></div>{% endfor %}</div>
+</section>
+
+{# ================= Fundamentaldaten ================= #}
+<section class="reiter-inhalt" data-id="fundamental">
+  <div class="raster">{{ chart_kgv }}{{ chart_wachstum }}</div>
+  <div class="tabelle-rahmen"><table class="tabelle">
+    <thead><tr><th>Kennzahl</th>{% for f in ok %}<th>{{ f.name }}</th>{% endfor %}</tr></thead>
+    <tbody>
+      <tr class="gruppenzeile"><td colspan="{{ ok|length + 1 }}">Bewertung</td></tr>
+      <tr><td>Börsenwert (USD)</td>{% for f in ok %}<td>{{ f.boersenwert | mrd }}</td>{% endfor %}</tr>
+      <tr><td>KGV (letzte 12 Monate)</td>{% for f in ok %}<td>{{ '%.1f' | format(f.fund.trailingPE) if f.fund.trailingPE and f.fund.financialCurrency == 'USD' else '–' }}</td>{% endfor %}</tr>
+      {% for i in range(3) %}
+      <tr><td>Erwartetes KGV {{ ok[0].kgv[i].jahr if ok[0].kgv|length > i else '' }}</td>{% for f in ok %}<td class="{{ 'fett' if i == 1 }}">{{ '%.1f' | format(f.kgv[i].kgv) ~ 'x' if f.kgv|length > i and f.kgv[i].kgv else '–' }}</td>{% endfor %}</tr>
+      {% endfor %}
+      <tr><td>PEG (KGV 2027 / Gewinnwachstum)</td>{% for f in ok %}<td>{{ '%.2f' | format(f.peg) if f.peg else '–' }}</td>{% endfor %}</tr>
+      <tr><td>Dividendenrendite</td>{% for f in ok %}<td>{{ '%.1f' | format(f.dividende) ~ '%' if f.dividende else 'keine' }}</td>{% endfor %}</tr>
+      <tr class="gruppenzeile"><td colspan="{{ ok|length + 1 }}">Gewinn je Aktie (Analysten-Konsens, USD)</td></tr>
+      {% for i in range(3) %}
+      <tr><td>{{ ok[0].kgv[i].jahr if ok[0].kgv|length > i else '' }}</td>{% for f in ok %}<td>{{ '%.2f' | format(f.kgv[i].eps) if f.kgv|length > i and f.kgv[i].eps else '–' }}{% if f.kgv|length > i %}<span class="grau"> ({{ f.kgv[i].anzahl }} Anal.)</span>{% endif %}</td>{% endfor %}</tr>
+      {% endfor %}
+      <tr><td>Wachstum 2026→27 / 2027→28</td>{% for f in ok %}<td>{{ '%+.0f' | format(f.eps_wachstum) ~ '%' if f.eps_wachstum is not none else '–' }} / {{ '%+.0f' | format(f.eps_wachstum2) ~ '%' if f.eps_wachstum2 is not none else '–' }}</td>{% endfor %}</tr>
+      <tr><td>Analysten-Kursziel (1 Jahr)</td>{% for f in ok %}<td>{{ f.kursziel | zahl(2) if f.kursziel else '–' }} <span class="{{ f.potenzial | klasse }}">({{ '%+.0f' | format(f.potenzial) if f.potenzial is not none else '–' }}%)</span></td>{% endfor %}</tr>
+      <tr class="gruppenzeile"><td colspan="{{ ok|length + 1 }}">Wachstum & Profitabilität (letzte Berichte)</td></tr>
+      <tr><td>Umsatzwachstum J/J</td>{% for f in ok %}<td class="{{ f.fund.revenueGrowth | klasse }}">{{ '%+.1f' | format(f.fund.revenueGrowth * 100) ~ '%' if f.fund.revenueGrowth is not none else '–' }}</td>{% endfor %}</tr>
+      <tr><td>Gewinnwachstum J/J</td>{% for f in ok %}<td class="{{ f.fund.earningsGrowth | klasse }}">{{ '%+.1f' | format(f.fund.earningsGrowth * 100) ~ '%' if f.fund.earningsGrowth is not none else '–' }}</td>{% endfor %}</tr>
+      <tr><td>Bruttomarge</td>{% for f in ok %}<td>{{ '%.1f' | format(f.fund.grossMargins * 100) ~ '%' if f.fund.grossMargins else '–' }}</td>{% endfor %}</tr>
+      <tr><td>Operative Marge</td>{% for f in ok %}<td>{{ '%.1f' | format(f.fund.operatingMargins * 100) ~ '%' if f.fund.operatingMargins else '–' }}</td>{% endfor %}</tr>
+      <tr><td>Nettomarge</td>{% for f in ok %}<td>{{ '%.1f' | format(f.fund.profitMargins * 100) ~ '%' if f.fund.profitMargins else '–' }}</td>{% endfor %}</tr>
+      <tr><td>Eigenkapitalrendite (ROE)</td>{% for f in ok %}<td>{{ '%.1f' | format(f.fund.returnOnEquity * 100) ~ '%' if f.fund.returnOnEquity else '–' }}</td>{% endfor %}</tr>
+      <tr><td>Berichtswährung</td>{% for f in ok %}<td class="grau">{{ f.fund.financialCurrency or '–' }}</td>{% endfor %}</tr>
+    </tbody>
+  </table></div>
+  <p class="vermerk">Quellen: {{ 'Nasdaq (Analysten-Konsens, Kursziel, Dividende), Yahoo Finance (Margen, Wachstum)' }}. Erwartetes KGV = heutiger Kurs / geschätzter Gewinn je Aktie.
+  Kaspi berichtet in Tenge (KZT): Wachstumsraten in Lokalwährung, Abwertungen des Tenge belasten die Gewinne in USD.</p>
+</section>
+
+{# ================= Risiko & Gamma ================= #}
+<section class="reiter-inhalt" data-id="risiko">
+  <div class="tabelle-rahmen"><table class="tabelle">
+    <thead><tr><th>Kennzahl (1 Jahr)</th>{% for f in ok %}<th>{{ f.name }}</th>{% endfor %}</tr></thead>
+    <tbody>
+      <tr><td>Rendite</td>{% for f in ok %}<td class="{{ f.risiko.rendite | klasse }}">{{ '%+.1f' | format(f.risiko.rendite) }}%</td>{% endfor %}</tr>
+      <tr><td>Volatilität</td>{% for f in ok %}<td>{{ '%.0f' | format(f.risiko.vola) }}%</td>{% endfor %}</tr>
+      <tr><td>Sharpe Ratio</td>{% for f in ok %}<td class="{{ f.risiko.sharpe | klasse }} fett">{{ '%.2f' | format(f.risiko.sharpe) }}</td>{% endfor %}</tr>
+      <tr><td>Sortino Ratio</td>{% for f in ok %}<td>{{ '%.2f' | format(f.risiko.sortino) }}</td>{% endfor %}</tr>
+      <tr><td>Beta zum S&P 500</td>{% for f in ok %}<td class="fett">{{ '%.2f' | format(f.risiko.beta) if f.risiko.beta is not none else '–' }}</td>{% endfor %}</tr>
+      <tr><td>Korrelation zum S&P 500</td>{% for f in ok %}<td>{{ '%.2f' | format(f.risiko.korrelation) if f.risiko.korrelation is not none else '–' }}</td>{% endfor %}</tr>
+      <tr><td>Beta zu Schwellenländern (EEM)</td>{% for f in ok %}<td>{{ '%.2f' | format(f.risiko_em.beta) if f.risiko_em and f.risiko_em.beta is not none else '–' }}</td>{% endfor %}</tr>
+      <tr><td>Korrelation zu Schwellenländern</td>{% for f in ok %}<td>{{ '%.2f' | format(f.risiko_em.korrelation) if f.risiko_em and f.risiko_em.korrelation is not none else '–' }}</td>{% endfor %}</tr>
+      <tr><td>Max Drawdown</td>{% for f in ok %}<td class="minus">{{ '%.0f' | format(f.risiko.max_dd) }}%</td>{% endfor %}</tr>
+      <tr class="gruppenzeile"><td colspan="{{ ok|length + 1 }}">Optionen (Gamma-Exposure, Verfall ≤ 60 Tage)</td></tr>
+      <tr><td>Gesamt-Gamma (Mio. USD je 1 %)</td>{% for f in ok %}<td class="{{ f.gamma.gesamt_mrd | klasse if f.gamma }}">{{ '%+.1f' | format(f.gamma.gesamt_mrd * 1000) if f.gamma else '–' }}</td>{% endfor %}</tr>
+      <tr><td>Gamma-Flip</td>{% for f in ok %}<td>{{ f.gamma.flip | zahl(2) if f.gamma and f.gamma.flip else '–' }}</td>{% endfor %}</tr>
+      <tr><td>Call-Wand / Put-Wand</td>{% for f in ok %}<td>{{ f.gamma.call_wand | zahl(0) if f.gamma and f.gamma.call_wand else '–' }} / {{ f.gamma.put_wand | zahl(0) if f.gamma and f.gamma.put_wand else '–' }}</td>{% endfor %}</tr>
+      <tr><td>Einordnung</td>{% for f in ok %}<td class="umbruch grau">{{ f.gamma_text or '–' }}</td>{% endfor %}</tr>
+    </tbody>
+  </table></div>
+  <p class="vermerk">Sharpe/Sortino mit risikolosem Zins {{ '%.2f' | format(zins) }}%. Beta 1.5 = bewegt sich im Schnitt 1.5-mal so stark wie der Vergleichsmarkt.
+  Gamma: Quelle Cboe (verzögert), eigene Berechnung. Bei kleineren Optionsmärkten (z. B. Kaspi) ist die Aussagekraft gering.</p>
+</section>
+
+{# ================= Geschäft & News ================= #}
+<section class="reiter-inhalt" data-id="news">
+  <div class="raster-3">
+  {% for f in ok %}
+    <div>
+      <h3 class="unterrubrik">{{ f.name }}</h3>
+      <p>{{ f.geschaeft }}</p>
+      <p class="grau"><b>Risiken:</b> {{ f.risiken }}</p>
+      {{ m.newsliste(f.news, kompakt=True) }}
+    </div>
+  {% endfor %}
+  </div>
+</section>
+
+{% for f in firmen if not f.ok %}<p class="minus">✖ {{ f.name }} ({{ f.ticker }}): keine Daten.</p>{% endfor %}
+<p class="vermerk" style="margin-top:24px">Persönlicher Research aus öffentlichen Daten, keine Anlageberatung. Kurse in USD; für Anleger in CHF kommt das Währungsrisiko USD/CHF hinzu.</p>
+{% endblock %}

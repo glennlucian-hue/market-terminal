@@ -17,7 +17,7 @@ import plotly.offline
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from markupsafe import Markup
 
-from . import analysen, anthropic_seite, cache, charts, kennzahlen
+from . import analysen, anthropic_seite, cache, charts, kennzahlen, vergleich_seite
 from .konfiguration import VORLAGEN_ORDNER, WEBSITE_ORDNER
 from .quellen import cftc, fred, news, portwatch, yahoo
 
@@ -560,8 +560,21 @@ def baue_website(watchlist: dict, themen: list[dict], melde=print):
     beweger = sorted(preise, key=lambda z: z["tag"])
     status = cache.PROTOKOLL
 
+    seiten = list(SEITEN)
+    vergleich_ctx = {}
+    if vergleich_seite.konfig():
+        melde("  Aktienvergleich (vergleich.yaml) ...")
+        try:
+            vergleich_ctx = vergleich_seite.baue(d)
+        except Exception as e:
+            d.fehler["vergleich_seite"] = f"{type(e).__name__}: {e}"
+        if vergleich_ctx.get("rangliste"):
+            seiten.insert([s_[0] for s_ in seiten].index("anthropic") + 1, ("vergleich", "Aktienvergleich"))
+    elif (WEBSITE_ORDNER / "vergleich.html").exists():
+        (WEBSITE_ORDNER / "vergleich.html").unlink()  # abgelaufene Vergleichsseite entfernen
+
     gemeinsam = {
-        "seiten": SEITEN, "datum_lang": datum_lang(jetzt), "erstellt": jetzt.strftime("%d.%m.%Y, %H:%M"),
+        "seiten": seiten, "datum_lang": datum_lang(jetzt), "erstellt": jetzt.strftime("%d.%m.%Y, %H:%M"),
         "band": [z for z in werte if z.get("band")],
         "plotly_version": plotly.offline.get_plotlyjs_version(),
         "anzahl_fehler": sum(1 for p in status if p["status"] == "fehler"),
@@ -578,6 +591,7 @@ def baue_website(watchlist: dict, themen: list[dict], melde=print):
         "positionierung": seite_positionierung(d),
         "themen": {"themen": themen_bloecke},
         "anthropic": anthropic_ctx,
+        "vergleich": vergleich_ctx,
         "termine": {"termine": _termine(d, 21), "fred_key": bool(os.getenv("FRED_API_KEY"))},
         "news": {"news": alle_news, "themen_liste": [(t["id"], t["titel"]) for t in themen_bloecke]
                  + [("anthropic", "Anthropic"), ("fedreden", "Fed-Reden")]},
@@ -592,7 +606,7 @@ def baue_website(watchlist: dict, themen: list[dict], melde=print):
     (WEBSITE_ORDNER / "assets").mkdir(exist_ok=True)
     for datei in ("stil.css", "app.js"):
         shutil.copy(VORLAGEN_ORDNER / datei, WEBSITE_ORDNER / "assets" / datei)
-    for seite, titel in SEITEN:
+    for seite, titel in seiten:
         html = umgebung.get_template(f"{seite}.html").render(aktiv=seite, titel=titel, **gemeinsam, **inhalte[seite])
         (WEBSITE_ORDNER / f"{seite}.html").write_text(html, encoding="utf-8")
 

@@ -1,0 +1,39 @@
+# ==========================================================================
+#  AKTIENVERGLEICH – temporäre Seite (erscheint nur bis zum Datum "anzeigen_bis")
+# ==========================================================================
+#  Andere Aktien vergleichen: Ticker, Namen und Beschreibung anpassen, Datum verlängern.
+#  Seite sofort entfernen: anzeigen_bis auf ein vergangenes Datum setzen.
+# ==========================================================================
+
+titel: "E-Commerce in Schwellenländern: MercadoLibre vs. Sea vs. Kaspi"
+anzeigen_bis: "2026-11-25"
+betrag_chf: [1000, 1500]          # geplanter Investitionsbetrag (für die Stückzahl-Rechnung)
+
+werte:
+  - ticker: MELI
+    name: MercadoLibre
+    region: Lateinamerika (v. a. Brasilien, Mexiko, Argentinien)
+    geschaeft: >
+      Grösster Online-Marktplatz Lateinamerikas, dazu Zahlungsdienst und Digitalbank (Mercado Pago),
+      Logistik (Mercado Envios) und Werbung.
+    risiken: Währungen (BRL, ARS, MXN), Inflation und Politik in Argentinien/Brasilien, Wettbewerb (Shopee, Temu, Amazon).
+    suchbegriff: 'MercadoLibre stock'
+  - ticker: SE
+    name: Sea Limited
+    region: Südostasien (Indonesien, Thailand, Vietnam, Philippinen, ...) und Brasilien
+    geschaeft: >
+      Shopee (Online-Marktplatz), Monee (Zahlungen und Kredite) und Garena (Videospiele, v. a. "Free Fire").
+    risiken: Hoher Wettbewerb (TikTok Shop, Lazada), Regulierung, Abhängigkeit von einem Spiel, Gewinne erst seit kurzem stabil.
+    suchbegriff: 'Sea Limited Shopee stock'
+  - ticker: KSPI
+    name: Kaspi.kz
+    region: Kasachstan und Türkei (Mehrheit an Hepsiburada seit 2024)
+    geschaeft: >
+      "Super-App" in Kasachstan: Online-Marktplatz, Zahlungen und Bank in einer App. Expansion in die Türkei
+      über den Online-Händler Hepsiburada.
+    risiken: Länderrisiko Kasachstan (Nähe zu Russland, Sanktionen), Währungen (KZT, TRY), türkische Inflation, wenige Analysten.
+    suchbegriff: 'Kaspi.kz OR Hepsiburada'
+
+# Für die Risiko-Kennzahlen: Vergleich mit dem S&P 500 und dem Schwellenländer-ETF
+markt: "^GSPC"
+schwellenlaender_etf: EEM

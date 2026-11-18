@@ -103,7 +103,8 @@ def fehlt(titel: str, meldung: str, breit: bool = False) -> Markup:
 def linien(serien: dict[str, pd.Series], *, titel: str, untertitel: str, quelle: str,
            einheit: str = "", start_tage: int | None = 365, knoepfe: bool = True, hoehe: int = 270,
            nulllinie: bool = False, flaeche: bool = False, hinweis: str = "", breit: bool = False,
-           farben: list[str] | None = None, y_bereich: tuple | None = None) -> Markup:
+           farben: list[str] | None = None, y_bereich: tuple | None = None,
+           marken: list[tuple[float, str]] | None = None) -> Markup:
     """Ein oder mehrere Linien auf EINER Achse (nie zwei verschiedene Skalen)."""
     farben = farben or FARBEN
     serien = {k: v.dropna() for k, v in serien.items() if v is not None and not v.dropna().empty}
@@ -131,6 +132,11 @@ def linien(serien: dict[str, pd.Series], *, titel: str, untertitel: str, quelle:
         fig.update_xaxes(range=[start.strftime("%Y-%m-%d"), (ende + timedelta(days=2)).strftime("%Y-%m-%d")])
     if nulllinie:
         fig.add_hline(y=0, line=dict(color=ACHSE, width=1))
+    for wert, text in marken or []:  # z. B. Pivot-Punkte: gepunktete Linie mit Beschriftung links
+        fig.add_hline(y=wert, line=dict(color="#a7a29c", width=1, dash="dot"), annotation_text=text,
+                      annotation_position="top left", annotation_font=dict(size=10, color=GRAU))
+    if marken:
+        sichtbar = _verbinde([sichtbar, pd.Series([w for w, _ in marken])])
     unten, oben = float(sichtbar.min()), float(sichtbar.max())
     puffer = (oben - unten) * 0.08 or abs(oben) * 0.02 or 1
     if y_bereich:

@@ -1,5 +1,6 @@
 """Yahoo Finance (über das Paket yfinance): Kurse, Bewertungen, Termine von Quartalszahlen."""
 import logging
+import time
 from datetime import date, datetime
 
 import pandas as pd
@@ -57,3 +58,39 @@ def firmendaten(ticker: str) -> dict:
         }
 
     return hole(f"yahoo_info_{ticker}", NAME, 24, laden)[0]
+
+
+def ohlc(ticker: str, cache_stunden: float = 4) -> pd.DataFrame:
+    """Tageskurse mit Eröffnung, Hoch, Tief, Schluss (1 Jahr) – für Pivot-Punkte und Technik."""
+    def laden():
+        df = yf.Ticker(ticker).history(period="1y", interval="1d", auto_adjust=False)
+        if df is None or df.empty:
+            raise DatenFehler(f"Keine Tageskurse für '{ticker}'")
+        df.index = pd.DatetimeIndex(df.index).tz_localize(None).normalize()
+        return df[["Open", "High", "Low", "Close"]].dropna()
+
+    return hole(f"yahoo_ohlc_{ticker}", NAME, cache_stunden, laden)[0]
+
+
+def fundamentaldaten(ticker: str) -> dict:
+    """Kennzahlen aus Yahoo (24 h im Cache). Verhältniszahlen (Margen, Wachstum) sind währungsneutral;
+    absolute Beträge können in der Berichtswährung der Firma sein (z. B. KZT bei Kaspi)."""
+    def laden():
+        i = {}
+        for versuch in range(4):  # Yahoo lehnt solche Abfragen zeitweise ab -> mehrere Versuche
+            try:
+                i = yf.Ticker(ticker).info or {}
+            except Exception:
+                i = {}
+            if len(i) >= 10:
+                break
+            time.sleep(3 + versuch * 3)
+        if len(i) < 10:
+            raise DatenFehler(f"Yahoo liefert zurzeit keine Fundamentaldaten für '{ticker}'")
+        felder = ["marketCap", "trailingPE", "priceToSalesTrailing12Months", "revenueGrowth", "earningsGrowth",
+                  "grossMargins", "operatingMargins", "profitMargins", "returnOnEquity", "debtToEquity",
+                  "dividendYield", "fiftyTwoWeekHigh", "fiftyTwoWeekLow", "currency", "financialCurrency",
+                  "longName", "country", "fullTimeEmployees"]
+        return {f: i.get(f) for f in felder}
+
+    return hole(f"yahoo_fund_{ticker}", NAME, 24, laden)[0]
