@@ -95,8 +95,8 @@ def sammle(watchlist_ticker: list[str] | None = None, relevante_aktien: set[str]
     ersatz = [s for s, k in kurse.items() if k["ok"] and k["quelle"] != "yahoo"]
     fehlt = [s for s, k in kurse.items() if not k["ok"]]
     status.append({"quelle": "Kurs-Ersatzkette", "ok": not fehlt,
-                   "grund": (f"Ersatzquelle für {', '.join(ersatz)}. " if ersatz else "") +
-                            (f"Keine Kurse für {', '.join(fehlt)}." if fehlt else ""),
+                   "grund": (f"Ersatzquelle für {len(ersatz)} Werte. " if ersatz else "") +
+                            (f"Keine Kurse für {len(fehlt)} Werte." if fehlt else ""),
                    "abgerufen": jetzt_utc().isoformat()})
     ergebnis["status"] = status
     return ergebnis

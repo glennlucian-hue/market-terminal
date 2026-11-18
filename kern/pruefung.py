@@ -50,6 +50,23 @@ def main() -> int:
         if auf_github:
             print(f"::notice title=Kurs {symbol}::Quelle {k['quelle']} · Kette {weg}")
 
+    # Probe: welche FMP-Endpunkte liefert der Gratis-Plan? (nur Status + Anzahl, keine Schlüssel)
+    from .provider import FMP
+    fmp = FMP()
+    for pfad, symbol in (("price-target-consensus", "NVDA"), ("price-target-summary", "NVDA"), ("grades", "NVDA"),
+                         ("price-target-news", "NVDA"), ("ratios-ttm", "NESN.SW"), ("ratios-ttm", "MC.PA"),
+                         ("profile", "NESN.SW"), ("analyst-estimates", "NVDA")):
+        params = {"symbol": symbol}
+        if pfad == "analyst-estimates":
+            params["period"] = "annual"
+        e = fmp.abfrage(f"{fmp.BASIS}/{pfad}", params, art="schaetzung")
+        n = len(e.daten) if e.ok and isinstance(e.daten, list) else (1 if e.ok and e.daten else 0)
+        felder = ",".join(list(e.daten[0])[:8]) if e.ok and isinstance(e.daten, list) and e.daten else ""
+        text = f"{pfad} {symbol}: " + (f"ok, {n} Einträge, Felder {felder}" if e.ok and n else (e.grund or "leer"))
+        print(text)
+        if auf_github:
+            print(f"::notice title=FMP-Probe::{text[:250]}")
+
     CACHE_ORDNER.mkdir(parents=True, exist_ok=True)
     (CACHE_ORDNER / "pruefung.json").write_text(json.dumps(
         {"zeit": jetzt_utc().isoformat(), "ergebnisse": ergebnisse}, ensure_ascii=False, indent=1))
