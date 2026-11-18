@@ -53,6 +53,7 @@ def main() -> int:
     # Probe: welche FMP-Endpunkte liefert der Gratis-Plan? (nur Status + Anzahl, keine Schlüssel)
     from .provider import FMP
     fmp = FMP()
+    zusammen = []
     for pfad, symbol in (("price-target-consensus", "NVDA"), ("price-target-summary", "NVDA"), ("grades", "NVDA"),
                          ("price-target-news", "NVDA"), ("ratios-ttm", "NESN.SW"), ("ratios-ttm", "MC.PA"),
                          ("profile", "NESN.SW"), ("analyst-estimates", "NVDA")):
@@ -64,8 +65,9 @@ def main() -> int:
         felder = ",".join(list(e.daten[0])[:8]) if e.ok and isinstance(e.daten, list) and e.daten else ""
         text = f"{pfad} {symbol}: " + (f"ok, {n} Einträge, Felder {felder}" if e.ok and n else (e.grund or "leer"))
         print(text)
-        if auf_github:
-            print(f"::notice title=FMP-Probe::{text[:250]}")
+        zusammen.append(f"{pfad}/{symbol}=" + (f"ok({n})" if e.ok and n else (e.grund or "leer")[:40]))
+    if auf_github:   # GitHub zeigt max. 10 Hinweise pro Schritt -> alles in einem Hinweis
+        print(f"::warning title=FMP-Probe::{' | '.join(zusammen)}")
 
     CACHE_ORDNER.mkdir(parents=True, exist_ok=True)
     (CACHE_ORDNER / "pruefung.json").write_text(json.dumps(
