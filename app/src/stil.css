@@ -101,3 +101,36 @@ table.tabelle { width: 100%; border-collapse: collapse; font: 12px var(--mono); 
 .hilfe { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: grid; place-items: center; z-index: 50; padding: 16px; }
 .hilfe-fenster { background: var(--panel); border: 1px solid var(--akzent-d); padding: 16px 18px; width: min(640px, 100%); }
 .hilfe-fenster h2 { font: 700 14px var(--mono); color: var(--akzent); margin: 0 0 8px; text-transform: uppercase; }
+
+/* ---------- Detailansicht ---------- */
+.detail-hintergrund { position: fixed; inset: 0; background: rgba(0,0,0,.65); z-index: 40; overflow: auto; padding: 18px; }
+.detail { max-width: 1320px; margin: 0 auto; background: var(--grund); border: 1px solid var(--akzent-d); }
+.detail-kopf { display: flex; gap: 16px; align-items: flex-start; padding: 10px 14px; background: var(--leiste); border-bottom: 2px solid var(--akzent); }
+.d-name { font: 700 19px var(--mono); color: var(--akzent); text-transform: uppercase; }
+.d-kurs { margin-left: auto; text-align: right; font: 18px var(--mono); }
+.d-kurs b { color: #fff; }
+.d-zu { font-size: 16px; padding: 2px 10px; }
+.klein { font-size: 11px; }
+.detail-raster { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 8px; padding: 8px; }
+.d-links, .d-rechts { display: grid; gap: 8px; align-content: start; min-width: 0; }
+.d-zwei { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.d-block { background: var(--panel); border: 1px solid var(--linie); padding: 8px 10px; min-width: 0; }
+.d-block h3 { margin: 0 0 6px; font: 700 11.5px var(--mono); color: var(--akzent); text-transform: uppercase; letter-spacing: .05em; }
+.d-quelle { font: 10px var(--mono); color: #6f767d; margin-top: 6px; }
+.d-grund { color: var(--grau); font: 12px var(--mono); margin: 4px 0; }
+.d-ziel { font: 20px var(--mono); margin-bottom: 6px; } .d-ziel b { color: #fff; }
+.d-balken { display: flex; height: 22px; font: 600 11px var(--mono); margin: 4px 0; overflow: hidden; }
+.d-balken span { display: flex; align-items: center; justify-content: center; color: #000; min-width: 22px; white-space: nowrap; }
+.b-kauf { background: #3ccf6e; } .b-halt { background: #c9a227; } .b-verk { background: #ff5c5c; }
+.d-banken { margin-top: 8px; line-height: 1.6; }
+.d-signale { margin: 6px 0 0; padding-left: 16px; font: 11px var(--mono); color: var(--tinte-2); }
+.d-chart-rahmen { background: var(--panel); border: 1px solid var(--linie); padding: 6px 8px; }
+.d-chart-kopf { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; font: 11px var(--mono); }
+.legende i { display: inline-block; width: 12px; height: 3px; margin: 0 4px 2px 8px; vertical-align: middle; }
+.d-chart { height: 340px; }
+.d-hinweis { font: 10.5px var(--mono); color: #6f767d; padding: 0 14px 10px; }
+@media (max-width: 900px) {
+  .detail-raster, .d-zwei { grid-template-columns: minmax(0, 1fr); }
+  .detail-hintergrund { padding: 0; }
+  .d-chart { height: 260px; }
+}

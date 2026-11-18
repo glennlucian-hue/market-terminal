@@ -8,6 +8,7 @@ import { klasse, prozent, zahl, zeit } from "./format";
 import { KurseTabelle } from "./panels/KurseTabelle";
 import { KursChart } from "./panels/KursChart";
 import { Datenstatus, Krypto, Termine, TopBewegungen } from "./panels/Weitere";
+import { DetailAnsicht } from "./panels/Detail";
 
 type Layout = { i: string; x: number; y: number; w: number; h: number; minW?: number; minH?: number }[];
 
@@ -40,6 +41,8 @@ export function Terminal({ daten, abmelden, neuLaden }: { daten: Daten; abmelden
   const [befehl, setBefehl] = useState("");
   const [meldung, setMeldung] = useState("Befehl eingeben – z. B. NVDA ⏎ · ? für Hilfe");
   const [hilfe, setHilfe] = useState(false);
+  const [detail, setDetail] = useState<string | null>(null);
+  const oeffne = useCallback((t: string) => { setAuswahl(t); if (daten.details?.[t]) setDetail(t); }, [daten.details]);
   const eingabe = useRef<HTMLInputElement>(null);
   const { width, containerRef, mounted } = useContainerWidth();
 
@@ -83,9 +86,9 @@ export function Terminal({ daten, abmelden, neuLaden }: { daten: Daten; abmelden
         + (daten.kurse[t] ? "" : " – Hinweis: für diesen Ticker gibt es noch keine Daten (in watchlist.yaml ergänzen)"));
     }
     const t = finde(gross);
-    if (t) { setAuswahl(t); return setMeldung(`Chart: ${t}`); }
+    if (t) { oeffne(t); return setMeldung(daten.details?.[t] ? `Detailansicht: ${t} (Esc schliesst)` : `Chart: ${t}`); }
     setMeldung(`«${b}» nicht gefunden. Nur Werte aus watchlist.yaml haben Daten. ? für Hilfe`);
-  }, [alleTicker, daten, listen.aktiv, neuLaden]);
+  }, [alleTicker, daten, listen.aktiv, neuLaden, oeffne]);
 
   const band = ["^GSPC", "^NDX", "^SSMI", "^STOXX50E", "^VIX", "DGS10", "CHF=X", "EURCHF=X", "GC=F", "BZ=F", "BTC-USD"]
     .map((t) => ({ t, k: daten.kurse[t] })).filter((x) => x.k?.ok);
@@ -93,7 +96,7 @@ export function Terminal({ daten, abmelden, neuLaden }: { daten: Daten; abmelden
   const schmal = width > 0 && width < 760;
 
   const panels: Record<string, ReactElement> = {
-    kurse: <KurseTabelle daten={daten} ticker={aktiveTicker} listenName={listen.aktiv} ausgewaehlt={auswahl} waehle={setAuswahl} />,
+    kurse: <KurseTabelle daten={daten} ticker={aktiveTicker} listenName={listen.aktiv} ausgewaehlt={auswahl} waehle={oeffne} />,
     chart: <KursChart daten={daten} ticker={auswahl} />,
     termine: <Termine daten={daten} />,
     top: <TopBewegungen daten={daten} />,
@@ -137,13 +140,14 @@ export function Terminal({ daten, abmelden, neuLaden }: { daten: Daten; abmelden
           </ReactGridLayout>
         ))}
       </div>
+      {detail && <DetailAnsicht daten={daten} ticker={detail} schliessen={() => setDetail(null)} />}
       {hilfe && (
         <div className="hilfe" onClick={() => setHilfe(false)}>
           <div className="hilfe-fenster" onClick={(e) => e.stopPropagation()}>
             <h2>Bedienung</h2>
             <table className="tabelle"><tbody>
               <tr><td className="links fett">/</td><td className="links">Befehlszeile fokussieren</td></tr>
-              <tr><td className="links fett">NVDA ⏎</td><td className="links">Chart eines Werts öffnen (Ticker oder Name, z. B. «Gold»)</td></tr>
+              <tr><td className="links fett">NVDA ⏎</td><td className="links">Aktie: Detailansicht (Chart, Kursziel, Analysten, Fundamentaldaten) · andere Werte: Chart. Auch Klick auf eine Zeile.</td></tr>
               <tr><td className="links fett">+MELI / -MELI</td><td className="links">Wert zur aktiven Watchlist hinzufügen / entfernen</td></tr>
               <tr><td className="links fett">LISTE Tech</td><td className="links">eigene Watchlist «Tech» anlegen bzw. wechseln («LISTE Standard» = alle Werte)</td></tr>
               <tr><td className="links fett">RESET</td><td className="links">Panel-Anordnung zurücksetzen</td></tr>

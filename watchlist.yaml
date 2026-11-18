@@ -18,6 +18,8 @@
 #    quelle: fred   -> Daten von der US-Notenbank St. Louis (FRED) statt Yahoo.
 #                      Der Ticker ist dann die FRED-Serien-ID, z. B. "DGS10".
 #    band: true     -> Wert erscheint im Kursband oben und als Kachel im Markt-Cockpit (Übersicht)
+#  Optionale Angabe pro Gruppe:
+#    aktien: true   -> Werte bekommen in der Terminal-App eine Detailansicht (Fundamentaldaten, Analysten)
 # ==========================================================================
 
 einstellungen:
@@ -89,21 +91,20 @@ gruppen:
       - name: Ethereum
         ticker: "ETH-USD"
 
-  - name: Aktien
+  # Dein Parqet-Portfolio steht NICHT hier (dieses Repository ist öffentlich), sondern privat in
+  # watchlist_portfolio.yaml (nur auf deinem PC) bzw. im GitHub-Secret WATCHLIST_PORTFOLIO.
+  # Es wird automatisch hier vor den Favoriten eingefügt.
+
+  - name: Favoriten
+    aktien: true          # aktien: true = Detailansicht mit Fundamentaldaten und Analysten
     werte:
       - name: Nvidia
         ticker: "NVDA"
-      - name: Microsoft
-        ticker: "MSFT"
-      - name: Alphabet
-        ticker: "GOOGL"
-      - name: Amazon
-        ticker: "AMZN"
-      - name: Meta
-        ticker: "META"
-      - name: Nestlé
-        ticker: "NESN.SW"
-      - name: Roche
-        ticker: "ROP.SW"   # Genussschein; bei Yahoo nicht mehr "ROG.SW"
-      - name: UBS
-        ticker: "UBSG.SW"
+      - name: XPeng
+        ticker: "XPEV"
+      - name: Broadcom
+        ticker: "AVGO"
+      - name: Sea Limited
+        ticker: "SE"
+      - name: Lucid
+        ticker: "LCID"

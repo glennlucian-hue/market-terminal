@@ -5,3 +5,4 @@ website/
 __pycache__/
 CLAUDE.md
 app/node_modules/
+watchlist_portfolio.yaml

@@ -133,6 +133,38 @@ class FMP(Provider):
                    "verschuldung": erstes("debtToEquityRatioTTM", "debtEquityRatioTTM")}
         return r
 
+    def kursziel(self, symbol: str) -> Ergebnis:
+        """Konsens-Kursziel der Analysten (tief, Median, Konsens, hoch). Gratis nur für US-Aktien."""
+        e = self.abfrage(f"{self.BASIS}/price-target-consensus", {"symbol": symbol}, cache_minuten=24 * 60,
+                         cache_name=f"ziel_{symbol}", art="schaetzung")
+        if e.ok:
+            d = (e.daten or [None])[0]
+            if not d:
+                return Ergebnis(self.name, False, grund=f"kein Kursziel für {symbol}")
+            e.daten = {"mittel": d.get("targetConsensus"), "median": d.get("targetMedian"),
+                       "hoch": d.get("targetHigh"), "tief": d.get("targetLow")}
+        return e
+
+    def einstufungen(self, symbol: str, anzahl: int = 12) -> Ergebnis:
+        """Letzte Einstufungen einzelner Analysehäuser (wer, wann, von -> zu)."""
+        e = self.abfrage(f"{self.BASIS}/grades", {"symbol": symbol}, cache_minuten=24 * 60,
+                         cache_name=f"grades_{symbol}", art="schaetzung")
+        if e.ok:
+            e.daten = [{"datum": x.get("date"), "firma": x.get("gradingCompany"), "von": x.get("previousGrade"),
+                        "zu": x.get("newGrade"), "aktion": x.get("action")} for x in (e.daten or [])[:anzahl]]
+        return e
+
+    def schaetzungen(self, symbol: str) -> Ergebnis:
+        """Analystenschätzungen je Geschäftsjahr (Umsatz, Gewinn je Aktie)."""
+        e = self.abfrage(f"{self.BASIS}/analyst-estimates", {"symbol": symbol, "period": "annual"},
+                         cache_minuten=24 * 60, cache_name=f"est_{symbol}", art="schaetzung")
+        if e.ok:
+            heute = date.today().isoformat()
+            zeilen = sorted((x for x in (e.daten or []) if (x.get("date") or "") >= heute[:4]), key=lambda x: x.get("date", ""))
+            e.daten = [{"jahr": (x.get("date") or "")[:4], "eps": x.get("epsAvg"), "umsatz": x.get("revenueAvg"),
+                        "analysten": x.get("numAnalystsEps")} for x in zeilen[:3]]
+        return e
+
     def pruefen(self) -> Ergebnis:
         return self.kurs("AAPL")
 

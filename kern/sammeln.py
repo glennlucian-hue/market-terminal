@@ -52,7 +52,7 @@ def _historie(symbole: list[str], tage: int = 400) -> dict:
 
 
 def sammle(watchlist_ticker: list[str] | None = None, relevante_aktien: set[str] | None = None,
-           watchlist_struktur: list[dict] | None = None) -> dict:
+           watchlist_struktur: list[dict] | None = None, aktien: dict[str, str] | None = None) -> dict:
     relevante = GROSSE_US_FIRMEN | set(relevante_aktien or [])
     status = []
     ergebnis = {"erstellt": jetzt_utc().isoformat()}
@@ -92,6 +92,20 @@ def sammle(watchlist_ticker: list[str] | None = None, relevante_aktien: set[str]
     ergebnis["kurse"] = kurse
     ergebnis["historie"] = _historie(list(kurse))
     ergebnis["watchlist"] = watchlist_struktur or []
+
+    # Detail-Daten für Aktien (Gruppen mit "aktien: true")
+    from concurrent.futures import ThreadPoolExecutor
+    from .details import details
+    det = {}
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        for t, d in zip(aktien or {}, pool.map(lambda t: details(t, (aktien or {})[t]), aktien or {})):
+            det[t] = d
+    ergebnis["details"] = det
+    mit_ziel = sum(1 for d in det.values() if d.get("kursziel", {}).get("mittel"))
+    mit_fund = sum(1 for d in det.values() if d.get("fundamental", {}).get("werte"))
+    status.append({"quelle": "Aktien-Details", "ok": bool(det) or not aktien,
+                   "grund": f"{len(det)} Aktien · Fundamentaldaten für {mit_fund} · Kursziel für {mit_ziel}",
+                   "abgerufen": jetzt_utc().isoformat()})
     ersatz = [s for s, k in kurse.items() if k["ok"] and k["quelle"] != "yahoo"]
     fehlt = [s for s, k in kurse.items() if not k["ok"]]
     status.append({"quelle": "Kurs-Ersatzkette", "ok": not fehlt,
@@ -109,7 +123,7 @@ def schreibe_pakete(daten: dict, ordner: Path) -> list[str]:
         return []
     ordner.mkdir(parents=True, exist_ok=True)
     geschrieben = []
-    for name in ("krypto", "wirtschaftstermine", "earnings", "top_bewegungen", "kurse", "historie", "watchlist", "status"):
+    for name in ("krypto", "wirtschaftstermine", "earnings", "top_bewegungen", "kurse", "historie", "watchlist", "details", "status"):
         huelle = verschluesseln({"erstellt": daten["erstellt"], "inhalt": daten.get(name)}, passwort)
         (ordner / f"{name}.json.enc").write_text(json.dumps(huelle), encoding="utf-8")
         geschrieben.append(name)

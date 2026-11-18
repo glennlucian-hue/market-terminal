@@ -1,4 +1,5 @@
 """Liest die Watchlist (watchlist.yaml), die Themen (themen.yaml) und die Schlüssel (.env)."""
+import os
 from pathlib import Path
 
 import yaml
@@ -38,10 +39,30 @@ def _lies_yaml(pfad: Path) -> dict:
     return daten
 
 
+def _portfolio_gruppen() -> list:
+    """Private Portfolio-Gruppen: aus dem GitHub-Secret WATCHLIST_PORTFOLIO oder der lokalen Datei
+    watchlist_portfolio.yaml (wird nie hochgeladen). Fehlt beides, gibt es keine Portfolio-Gruppe."""
+    text = os.getenv("WATCHLIST_PORTFOLIO", "").strip()
+    pfad = PROJEKT / "watchlist_portfolio.yaml"
+    if not text and pfad.exists():
+        text = pfad.read_text(encoding="utf-8")
+    if not text:
+        return []
+    try:
+        daten = yaml.safe_load(text) or {}
+    except yaml.YAMLError as e:
+        raise KonfigFehler(f"Portfolio-Watchlist (watchlist_portfolio.yaml bzw. Secret) ist nicht lesbar: {e}") from e
+    return daten.get("gruppen", []) if isinstance(daten, dict) else []
+
+
 def lade_watchlist(pfad: Path = WATCHLIST_DATEI) -> dict:
     daten = _lies_yaml(pfad)
     if not isinstance(daten.get("gruppen"), list):
         raise KonfigFehler("watchlist.yaml braucht einen Abschnitt 'gruppen:' mit einer Liste von Gruppen.")
+    privat = _portfolio_gruppen()
+    if privat:
+        stelle = next((i for i, g in enumerate(daten["gruppen"]) if g.get("name") == "Favoriten"), len(daten["gruppen"]))
+        daten["gruppen"][stelle:stelle] = privat
     for g in daten["gruppen"]:
         if not g.get("name") or not isinstance(g.get("werte"), list):
             raise KonfigFehler(f"Jede Gruppe braucht 'name:' und 'werte:'. Problem bei: {g}")
@@ -54,6 +75,7 @@ def lade_watchlist(pfad: Path = WATCHLIST_DATEI) -> dict:
             w.setdefault("band", False)
             if w["quelle"] not in ("yahoo", "fred"):
                 raise KonfigFehler(f"'quelle:' muss yahoo oder fred sein. Problem bei: {w['name']}")
+        g.setdefault("aktien", False)
     daten.setdefault("einstellungen", {})
     daten["einstellungen"].setdefault("cache_stunden", 4)
     return daten

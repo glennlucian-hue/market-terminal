@@ -90,7 +90,9 @@ def fundamentaldaten(ticker: str) -> dict:
         felder = ["marketCap", "trailingPE", "priceToSalesTrailing12Months", "revenueGrowth", "earningsGrowth",
                   "grossMargins", "operatingMargins", "profitMargins", "returnOnEquity", "debtToEquity",
                   "dividendYield", "fiftyTwoWeekHigh", "fiftyTwoWeekLow", "currency", "financialCurrency",
-                  "longName", "country", "fullTimeEmployees"]
+                  "longName", "country", "fullTimeEmployees", "forwardPE", "beta", "sector", "industry",
+                  "targetMeanPrice", "targetHighPrice", "targetLowPrice", "targetMedianPrice",
+                  "numberOfAnalystOpinions", "recommendationKey", "trailingEps", "forwardEps", "pegRatio"]
         return {f: i.get(f) for f in felder}
 
-    return hole(f"yahoo_fund_{ticker}", NAME, 24, laden)[0]
+    return hole(f"yahoo_fund2_{ticker}", NAME, 24, laden)[0]   # "2": erweiterte Felder (Kursziele)

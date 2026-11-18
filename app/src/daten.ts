@@ -16,6 +16,19 @@ export interface Earnings { symbol: string; datum: string; zeit: string; eps_sch
 export interface Bewegung { symbol: string; kurs: number | null; veraenderung_pct: number | null; volumen: number | null }
 export interface Coin { symbol: string; name: string; kurs: number; veraenderung_24h_pct: number | null; veraenderung_7d_pct: number | null; marktwert: number | null; rang: number; stand: string }
 export interface Status { quelle: string; ok: boolean; grund: string; abgerufen: string }
+export interface Detail {
+  ticker: string; name: string; erstellt: string; waehrungshinweis?: string;
+  profil: { sektor: string | null; branche: string | null; land: string | null; waehrung: string | null; mitarbeiter: number | null };
+  fundamental: { werte: Record<string, number | null>; quelle: string | null; grund?: string };
+  kursziel: { mittel?: number; median?: number; hoch?: number; tief?: number; quelle?: string; grund?: string };
+  empfehlung: { kaufen?: number; halten?: number; verkaufen?: number; anzahl?: number; tendenz?: string | null; banken?: string[]; quelle?: string; grund?: string };
+  einstufungen: { liste: { datum: string; firma: string; von: string | null; zu: string | null; aktion: string | null }[]; quelle?: string; grund?: string };
+  schaetzungen: { jahre: { jahr: string; eps: number | null; umsatz?: number | null; analysten?: number | null }[]; quelle?: string | null; grund?: string | null };
+  technik: { grund?: string; kurs?: number; sma50?: number | null; sma200?: number | null; abstand200?: number | null; rsi?: number;
+    macd_positiv?: boolean; trend?: string; trendpunkte?: number; signale?: string[]; unterstuetzung?: number | null; widerstand?: number | null;
+    hoch52?: number; tief52?: number; vom_hoch?: number; pivots?: Record<string, number>; quelle?: string;
+    sma50_reihe?: (number | null)[]; sma200_reihe?: (number | null)[]; reihe_daten?: string[] };
+}
 
 export interface Daten {
   erstellt: string;
@@ -27,10 +40,11 @@ export interface Daten {
   top_bewegungen: { stand: string; gewinner: Bewegung[]; verlierer: Bewegung[]; meistgehandelt: Bewegung[] } | null;
   krypto: { markt: { marktwert_usd: number; veraenderung_24h_pct: number; dominanz_pct: Record<string, number>; stand: string } | null; coins: Coin[]; fehler: string | null } | null;
   status: Status[];
+  details: Record<string, Detail>;
   fehlend: string[];               // Pakete, die nicht geladen werden konnten
 }
 
-const PAKETE = ["kurse", "historie", "watchlist", "wirtschaftstermine", "earnings", "top_bewegungen", "krypto", "status"] as const;
+const PAKETE = ["kurse", "historie", "watchlist", "wirtschaftstermine", "earnings", "top_bewegungen", "krypto", "details", "status"] as const;
 const BASIS = new URL("../pakete/", window.location.href);
 
 export class FalschesPasswort extends Error {}
@@ -50,7 +64,7 @@ export async function ladeDaten(passwort: string): Promise<Daten> {
     } catch (e) {
       if (i === 0 && e instanceof DOMException) throw new FalschesPasswort("Falsches Passwort");
       (daten.fehlend as string[]).push(name);
-      daten[name] = name === "kurse" || name === "historie" ? {} : name === "top_bewegungen" || name === "krypto" ? null : [];
+      daten[name] = name === "kurse" || name === "historie" || name === "details" ? {} : name === "top_bewegungen" || name === "krypto" ? null : [];
     }
   }
   return daten as unknown as Daten;

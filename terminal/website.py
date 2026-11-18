@@ -160,7 +160,7 @@ class Sammlung:
         self.fed_reden = self._versuche("fed_reden", news.fed_reden) or []
 
         self.melde("  Firmendaten und Termine der Quartalszahlen ...")
-        aktien = KI_KORB + [w["ticker"] for g in self.watchlist["gruppen"] if g["name"] == "Aktien"
+        aktien = KI_KORB + [w["ticker"] for g in self.watchlist["gruppen"] if g.get("aktien")
                             for w in g["werte"]]
         aktien = list(dict.fromkeys(aktien))
         with ThreadPoolExecutor(max_workers=6) as pool:
@@ -182,7 +182,8 @@ class Sammlung:
             struktur = [{"gruppe": g["name"], "werte": [{"ticker": w["ticker"], "name": w["name"], "art": w["art"],
                                                        "quelle": w["quelle"]} for w in g["werte"]]}
                         for g in self.watchlist["gruppen"]]
-            self.kern = sammle(sorted(t for t in yahoo_ticker if t.isupper()), relevante, struktur)
+            aktien_namen = {w["ticker"]: w["name"] for g in self.watchlist["gruppen"] if g.get("aktien") for w in g["werte"]}
+            self.kern = sammle(sorted(t for t in yahoo_ticker if t.isupper()), relevante, struktur, aktien_namen)
             # FRED-Serien der Watchlist (z. B. US-Renditen) als Kurse und Verlauf ergänzen
             for w in (w for g in self.watchlist["gruppen"] for w in g["werte"] if w["quelle"] == "fred"):
                 reihe = self.fred.get(w["ticker"])
