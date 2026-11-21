@@ -46,7 +46,9 @@ def firmendaten(ticker: str) -> dict:
         except Exception:
             pass
         if not info.get("marketCap") and not termin:
-            raise DatenFehler(f"Keine Firmendaten für '{ticker}'")
+            # z. B. ETFs: keine Firmendaten vorhanden – das ist kein Fehler
+            return {"name": info.get("shortName") or ticker, "marktwert": None, "kgv_erwartet": None, "kgv": None,
+                    "kurs_umsatz": None, "waehrung": info.get("currency"), "naechste_zahlen": None}
         return {
             "name": info.get("shortName") or ticker,
             "marktwert": info.get("marketCap"),
