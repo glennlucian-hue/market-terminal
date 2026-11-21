@@ -63,6 +63,7 @@ jobs:
           SEC_KONTAKT: ${{ secrets.SEC_KONTAKT }}
           FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
           FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
+          GEXBOT_API_KEY: ${{ secrets.GEXBOT_API_KEY }}
           ALPHAVANTAGE_API_KEY: ${{ secrets.ALPHAVANTAGE_API_KEY }}
           SITE_PASSWORT: ${{ secrets.SITE_PASSWORT }}
           WATCHLIST_PORTFOLIO: ${{ secrets.WATCHLIST_PORTFOLIO }}

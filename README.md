@@ -88,6 +88,12 @@ Die neue Terminal-App erreichst du über den Knopf **«▶ Terminal 2.0 (Beta)»
 - Befehle: `NVDA` (Chart), `+MELI` / `-MELI` (Watchlist), `LISTE Tech` (eigene Watchlist), `RESET` (Layout), `NEU` (Daten neu laden).
 - Anordnung und eigene Watchlists werden im jeweiligen Browser gespeichert.
 
+### GEXBot (optional, kostenpflichtig)
+Die Terminal-App hat ein Panel **«Gamma-Levels»** (Zero Gamma, Major Levels). Ohne Abo berechnet es die Werte
+gratis aus verzögerten Cboe-Optionsdaten (nur einzelne US-Aktien). Mit einem GEXBot-Abo (Classic oder höher):
+API-Schlüssel im GEXBot-Portal unter «Connections» kopieren und als GitHub-Secret **`GEXBOT_API_KEY`** eintragen –
+dann erscheinen automatisch SPX, NDX und alle abgedeckten Werte der Watchlist. Daten nur privat nutzen (GEXBot-Bedingungen).
+
 ## 4. Die Seiten
 
 | Seite | Inhalt |

@@ -48,6 +48,8 @@ function DetailChart({ daten, d }: { daten: Daten; d: Detail }) {
     if (z.mittel) kurs.createPriceLine({ price: z.mittel, color: "#3ccf6e", lineWidth: 2, lineStyle: LineStyle.Dashed, axisLabelVisible: true, title: "Kursziel Ø" });
     if (z.hoch) kurs.createPriceLine({ price: z.hoch, color: "#3ccf6e", lineWidth: 1, lineStyle: LineStyle.Dotted, axisLabelVisible: true, title: "Ziel hoch" });
     if (z.tief) kurs.createPriceLine({ price: z.tief, color: "#ff5c5c", lineWidth: 1, lineStyle: LineStyle.Dotted, axisLabelVisible: true, title: "Ziel tief" });
+    const gw = daten.gamma?.werte[d.ticker];
+    if (gw?.zero_gamma) kurs.createPriceLine({ price: gw.zero_gamma, color: "#d0569f", lineWidth: 1, lineStyle: LineStyle.LargeDashed, axisLabelVisible: true, title: "Zero Gamma" });
     chart.timeScale().fitContent();
     return () => chart.remove();
   }, [h, d, tage]);
@@ -55,11 +57,11 @@ function DetailChart({ daten, d }: { daten: Daten; d: Detail }) {
   return (
     <div className="d-chart-rahmen">
       <div className="d-chart-kopf">
-        <span className="legende"><i style={{ background: "#ffa31a" }} />Kurs <i style={{ background: "#2a96d4" }} />50-Tage <i style={{ background: "#8a78ee" }} />200-Tage <i style={{ background: "#3ccf6e" }} />Kursziel</span>
+        <span className="legende"><i style={{ background: "#ffa31a" }} />Kurs <i style={{ background: "#2a96d4" }} />50-Tage <i style={{ background: "#8a78ee" }} />200-Tage <i style={{ background: "#3ccf6e" }} />Kursziel <i style={{ background: "#d0569f" }} />Zero Gamma</span>
         <span className="knopfgruppe">{ZEITRAEUME.map(([n, t]) => <button key={n} className={t === tage ? "aktiv" : ""} onClick={() => setTage(t)}>{n}</button>)}</span>
       </div>
       <div className="d-chart" ref={ref} />
-      <div className="d-quelle">Quelle: Kurse {h.quelle} (Schlusskurse), Trendlinien eigene Berechnung, Kursziel {d.kursziel.quelle ?? "–"}</div>
+      <div className="d-quelle">Quelle: Kurse {h.quelle} (Schlusskurse), Trendlinien eigene Berechnung, Kursziel {d.kursziel.quelle ?? "–"}{daten.gamma?.werte[d.ticker] ? `, Zero Gamma ${daten.gamma.werte[d.ticker].quelle}` : ""}</div>
     </div>
   );
 }

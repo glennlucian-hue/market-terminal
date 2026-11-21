@@ -7,7 +7,7 @@ import type { Daten } from "./daten";
 import { klasse, prozent, zahl, zeit } from "./format";
 import { KurseTabelle } from "./panels/KurseTabelle";
 import { KursChart } from "./panels/KursChart";
-import { Datenstatus, Krypto, Termine, TopBewegungen } from "./panels/Weitere";
+import { Datenstatus, GammaLevels, Krypto, Termine, TopBewegungen } from "./panels/Weitere";
 import { DetailAnsicht } from "./panels/Detail";
 
 type Layout = { i: string; x: number; y: number; w: number; h: number; minW?: number; minH?: number }[];
@@ -19,8 +19,9 @@ const STANDARD_LAYOUT: Layout = [
   { i: "top", x: 9, y: 11, w: 3, h: 12, minW: 3, minH: 5 },
   { i: "krypto", x: 0, y: 17, w: 5, h: 11, minW: 3, minH: 5 },
   { i: "status", x: 5, y: 23, w: 7, h: 5, minW: 3, minH: 3 },
+  { i: "gamma", x: 0, y: 28, w: 7, h: 9, minW: 3, minH: 4 },
 ];
-const LAYOUT_KEY = "mt-layout-v1";
+const LAYOUT_KEY = "mt-layout-v2";
 const LISTEN_KEY = "mt-watchlists-v1";
 
 function lies<T>(key: string, ersatz: T): T {
@@ -102,6 +103,7 @@ export function Terminal({ daten, abmelden, neuLaden }: { daten: Daten; abmelden
     top: <TopBewegungen daten={daten} />,
     krypto: <Krypto daten={daten} />,
     status: <Datenstatus daten={daten} />,
+    gamma: <GammaLevels daten={daten} waehle={oeffne} />,
   };
 
   return (

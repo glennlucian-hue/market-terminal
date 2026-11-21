@@ -78,3 +78,29 @@ export function Datenstatus({ daten }: { daten: Daten }) {
     </Panel>
   );
 }
+
+export function GammaLevels({ daten, waehle }: { daten: Daten; waehle: (t: string) => void }) {
+  const g = daten.gamma;
+  const zeilen = g ? Object.entries(g.werte) : [];
+  return (
+    <Panel titel={`Gamma-Levels${g?.gexbot_verbunden ? " · GEXBot" : " · Gratis-Ersatz"}`} quelle={g?.quelle ?? "–"} stand={g?.erstellt}
+           art={g?.gexbot_verbunden ? "verzoegert" : "eigene_berechnung"}>
+      {!g?.gexbot_verbunden && (
+        <div className="gamma-hinweis">GEXBot nicht verbunden (kein Abo). Mit Schlüssel im GitHub-Secret <b>GEXBOT_API_KEY</b> erscheinen hier
+          automatisch {g?.abgedeckt_bei_gexbot.length ?? 0} Werte inkl. SPX und NDX{g?.abgedeckt_bei_gexbot.length ? ` (${g.abgedeckt_bei_gexbot.join(", ")})` : ""}.</div>)}
+      {zeilen.length === 0 ? <KeineDaten grund={g?.hinweise.join(" · ") || "keine Gamma-Daten"} /> : (
+        <table className="tabelle"><thead><tr><th className="links">Wert</th><th>Kurs</th><th>Zero Gamma</th><th>Abstand</th><th>Major +</th><th>Major −</th><th className="links">Regime</th></tr></thead>
+          <tbody>{zeilen.map(([t, w]) => {
+            const abstand = w.spot && w.zero_gamma ? (w.spot / w.zero_gamma - 1) * 100 : null;
+            return (<tr key={t} onClick={() => waehle(t)}>
+              <td className="links fett">{t}{w.gex_ticker && w.gex_ticker !== t ? <span className="tk">{w.gex_ticker}</span> : null}</td>
+              <td>{zahl(w.spot, 2)}</td><td className="fett">{zahl(w.zero_gamma, 2)}</td>
+              <td className={klasse(abstand)}>{abstand === null ? "–" : `${abstand > 0 ? "+" : ""}${abstand.toFixed(1)}%`}</td>
+              <td className="plus">{zahl(w.major_pos, 2)}</td><td className="minus">{zahl(w.major_neg, 2)}</td>
+              <td className={`links ${w.spot && w.zero_gamma && w.spot >= w.zero_gamma ? "plus" : "minus"}`}>{w.spot && w.zero_gamma ? (w.spot >= w.zero_gamma ? "ruhiger" : "schwankungsreicher") : "–"}</td>
+            </tr>);
+          })}</tbody></table>)}
+      <div className="mini-info">Über Zero Gamma dämpfen Options-Händler Bewegungen eher, darunter verstärken sie sie eher. Markt-Mechanik, keine Prognose.</div>
+    </Panel>
+  );
+}

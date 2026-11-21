@@ -30,6 +30,10 @@ export interface Detail {
     sma50_reihe?: (number | null)[]; sma200_reihe?: (number | null)[]; reihe_daten?: string[] };
 }
 
+export interface GammaWert { ticker: string; gex_ticker?: string; spot: number | null; zero_gamma: number | null; major_pos: number | null;
+  major_neg: number | null; summe_oi: number | null; profil: [number, number][]; stand: string | null; einordnung: string | null; quelle: string; art: string }
+export interface Gamma { quelle: string; gexbot_verbunden: boolean; werte: Record<string, GammaWert>; hinweise: string[]; abgedeckt_bei_gexbot: string[]; erstellt: string }
+
 export interface Daten {
   erstellt: string;
   kurse: Record<string, Kurs>;
@@ -41,10 +45,11 @@ export interface Daten {
   krypto: { markt: { marktwert_usd: number; veraenderung_24h_pct: number; dominanz_pct: Record<string, number>; stand: string } | null; coins: Coin[]; fehler: string | null } | null;
   status: Status[];
   details: Record<string, Detail>;
+  gamma: Gamma | null;
   fehlend: string[];               // Pakete, die nicht geladen werden konnten
 }
 
-const PAKETE = ["kurse", "historie", "watchlist", "wirtschaftstermine", "earnings", "top_bewegungen", "krypto", "details", "status"] as const;
+const PAKETE = ["kurse", "historie", "watchlist", "wirtschaftstermine", "earnings", "top_bewegungen", "krypto", "details", "gamma", "status"] as const;
 const BASIS = new URL("../pakete/", window.location.href);
 
 export class FalschesPasswort extends Error {}
@@ -64,7 +69,7 @@ export async function ladeDaten(passwort: string): Promise<Daten> {
     } catch (e) {
       if (i === 0 && e instanceof DOMException) throw new FalschesPasswort("Falsches Passwort");
       (daten.fehlend as string[]).push(name);
-      daten[name] = name === "kurse" || name === "historie" || name === "details" ? {} : name === "top_bewegungen" || name === "krypto" ? null : [];
+      daten[name] = name === "kurse" || name === "historie" || name === "details" ? {} : name === "top_bewegungen" || name === "krypto" || name === "gamma" ? null : [];
     }
   }
   return daten as unknown as Daten;

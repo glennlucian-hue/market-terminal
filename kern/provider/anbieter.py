@@ -304,4 +304,64 @@ class SecEdgar(Provider):
         return e
 
 
-ALLE = [Finnhub, FMP, AlphaVantage, CoinGecko, FredKalender, SecEdgar]
+# ---------------------------------------------------------------------------
+class GexBot(Provider):
+    """GEXBot (kostenpflichtiges Abo): Gamma-Exposure der Options-Händler, Zero Gamma, Major Levels.
+    Dokumentation: https://docs.gexbot.com/apidocs/ – Nutzung nur privat, keine Weitergabe der Daten.
+    Ohne Schlüssel (GEXBOT_API_KEY) meldet der Provider "kein Schlüssel"; das Terminal nutzt dann den Gratis-Ersatz."""
+    name, anzeige = "gexbot", "GEXBot"
+    schluessel_env = "GEXBOT_API_KEY"
+    pro_minute = 30
+    BASIS = "https://api.gex.bot/v2"
+    # Yahoo-Ticker der Watchlist -> GEXBot-Ticker (Indizes und Stellvertreter-ETFs)
+    ZUORDNUNG = {"^GSPC": "SPX", "^NDX": "NDX", "^VIX": "VIX", "GC=F": "GLD", "SI=F": "SLV", "CL=F": "USO",
+                 "BZ=F": "USO", "BTC-USD": "IBIT", "NG=F": "UNG"}
+
+    def _auth(self, headers, params):
+        headers["Authorization"] = f"Bearer {self.schluessel}"
+        headers["User-Agent"] = "MarketTerminal/1.0"
+
+    @classmethod
+    def abgedeckte_ticker(cls) -> set[str]:
+        """Öffentliche Liste der abgedeckten Ticker (ohne Schlüssel abrufbar, 24 h im Cache)."""
+        import json
+        import requests
+        from .basis import CACHE_ORDNER
+        datei = CACHE_ORDNER / "gexbot_tickers.json"
+        try:
+            return set(json.loads(datei.read_text()))
+        except Exception:
+            pass
+        alle = set()
+        for pfad in ("tickers", "tickers/quant"):
+            try:
+                d = requests.get(f"{cls.BASIS}/{pfad}", headers={"User-Agent": "MarketTerminal/1.0",
+                                 "Accept": "application/json"}, timeout=20).json()
+                for liste in d.values():
+                    alle |= set(liste)
+            except Exception:
+                continue
+        if alle:
+            CACHE_ORDNER.mkdir(parents=True, exist_ok=True)
+            datei.write_text(json.dumps(sorted(alle)))
+        return alle
+
+    def levels(self, ticker: str, kategorie: str = "gex_full") -> Ergebnis:
+        """Zero Gamma, Major Levels und GEX-Profil (Classic-Paket oder höher)."""
+        e = self.abfrage(f"{self.BASIS}/{ticker}/classic/{kategorie}", cache_minuten=10,
+                         cache_name=f"{ticker}_{kategorie}", art="verzoegert")
+        if e.ok:
+            d = e.daten or {}
+            profil = sorted(([x[0], x[2]] for x in d.get("strikes", []) if len(x) >= 3), key=lambda x: x[0])
+            e.daten = {"ticker": ticker, "spot": d.get("spot"), "zero_gamma": d.get("zero_gamma"),
+                       "major_pos": d.get("major_pos_oi"), "major_neg": d.get("major_neg_oi"),
+                       "major_pos_vol": d.get("major_pos_vol"), "major_neg_vol": d.get("major_neg_vol"),
+                       "summe_oi": d.get("sum_gex_oi"), "summe_vol": d.get("sum_gex_vol"),
+                       "profil": profil, "stand": als_utc(d.get("timestamp")).isoformat() if d.get("timestamp") else None}
+        return e
+
+    def pruefen(self) -> Ergebnis:
+        return self.levels("SPX")
+
+
+ALLE = [Finnhub, FMP, AlphaVantage, CoinGecko, FredKalender, SecEdgar, GexBot]

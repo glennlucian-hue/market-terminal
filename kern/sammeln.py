@@ -101,6 +101,19 @@ def sammle(watchlist_ticker: list[str] | None = None, relevante_aktien: set[str]
         for t, d in zip(aktien or {}, pool.map(lambda t: details(t, (aktien or {})[t]), aktien or {})):
             det[t] = d
     ergebnis["details"] = det
+
+    # Gamma-Levels (GEXBot mit Abo, sonst Gratis-Ersatz)
+    from .gamma import sammle_gamma
+    try:
+        ergebnis["gamma"] = sammle_gamma(list(watchlist_ticker or []))
+        gm = ergebnis["gamma"]
+        status.append({"quelle": f"Gamma-Levels ({gm['quelle']})", "ok": bool(gm["werte"]) or not gm["gexbot_verbunden"],
+                       "grund": f"{len(gm['werte'])} Werte" + ("" if gm["gexbot_verbunden"] else " · GEXBot nicht verbunden (kein Abo)"),
+                       "abgerufen": jetzt_utc().isoformat()})
+    except Exception as e:
+        ergebnis["gamma"] = None
+        status.append({"quelle": "Gamma-Levels", "ok": False, "grund": f"{type(e).__name__}: {str(e)[:100]}",
+                       "abgerufen": jetzt_utc().isoformat()})
     mit_ziel = sum(1 for d in det.values() if d.get("kursziel", {}).get("mittel"))
     mit_fund = sum(1 for d in det.values() if d.get("fundamental", {}).get("werte"))
     status.append({"quelle": "Aktien-Details", "ok": bool(det) or not aktien,
@@ -123,7 +136,7 @@ def schreibe_pakete(daten: dict, ordner: Path) -> list[str]:
         return []
     ordner.mkdir(parents=True, exist_ok=True)
     geschrieben = []
-    for name in ("krypto", "wirtschaftstermine", "earnings", "top_bewegungen", "kurse", "historie", "watchlist", "details", "status"):
+    for name in ("krypto", "wirtschaftstermine", "earnings", "top_bewegungen", "kurse", "historie", "watchlist", "details", "gamma", "status"):
         huelle = verschluesseln({"erstellt": daten["erstellt"], "inhalt": daten.get(name)}, passwort)
         (ordner / f"{name}.json.enc").write_text(json.dumps(huelle), encoding="utf-8")
         geschrieben.append(name)
