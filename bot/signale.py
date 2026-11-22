@@ -78,7 +78,9 @@ def bewerte(setup: Setup, df: pd.DataFrame, instrument: str, waechter: RisikoWae
         return None, grund
 
     seite, lage = ("Tief", "über") if r == "long" else ("Hoch", "unter")
-    gruende = [f"Turtle Soup an {setup.sweep.art}-{seite} {setup.sweep.preis:.2f}, CISD {lage} {setup.cisd_level:.2f}"]
+    gruende = [f"Break & Retest der Gamma-Wand {setup.sweep.preis:.2f}, CVD bestätigt"
+               if setup.sweep.art == "Gamma-Wand" else
+               f"Turtle Soup an {setup.sweep.art}-{seite} {setup.sweep.preis:.2f}, CISD {lage} {setup.cisd_level:.2f}"]
     warn, punkte, faktor = [], 1.0, 1.0
 
     if makro is not None:

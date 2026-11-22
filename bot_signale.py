@@ -15,7 +15,7 @@ import time
 
 import pandas as pd
 
-from bot import backtest, daten, journal, ict, makro, orderflow, signale, tpo
+from bot import backtest, daten, journal, retest, ict, makro, orderflow, signale, tpo
 from bot.risiko_regeln import INSTRUMENTE, Regeln, RisikoWaechter
 
 
@@ -30,6 +30,7 @@ def main() -> int:
     p.add_argument("--konto", type=float, default=10_000)
     p.add_argument("--risiko", type=float, default=0.01, help="Risiko je Trade als Anteil (0.01 = 1 %%)")
     p.add_argument("--min-rr", type=float, default=2.0)
+    p.add_argument("--wände", default="", help="eigene Gamma-Wände im Kurs des Symbols, z. B. 26173,25967,25761")
     p.add_argument("--gex", default="NDX", help="GEXBot-Ticker (nur mit GEXBOT_API_KEY)")
     p.add_argument("--backtest", action="store_true")
     p.add_argument("--ohne-makro", action="store_true")
@@ -88,7 +89,16 @@ def main() -> int:
 
         cvd_reihe, cvd_art = orderflow.cvd(df)
         waechter = RisikoWaechter(regeln)
-        heute = [s for s in ict.setups(df) if s.zeit.date() == jetzt.date()]
+        # Gamma-Wände: eigene Liste oder GEXBot; GEX-Kurse (z. B. QQQ/NDX) aufs Symbol umrechnen
+        faktor = float(df["Close"].iloc[-1]) / gex["spot"] if gex and gex.get("spot") else 1.0
+        waende = [float(x) for x in a.wände.split(",") if x] or \
+                 [gex[k] * faktor for k in ("major_pos", "major_neg") if gex and gex.get(k)]
+        zg = gex["zero_gamma"] * faktor if gex and gex.get("zero_gamma") else None
+        if gex and faktor != 1.0:
+            gex = {**gex, **{k: gex[k] * faktor for k in ("spot", "zero_gamma", "major_pos", "major_neg") if gex.get(k)}}
+        tol = 4 * INSTRUMENTE[a.instrument]["tick"] * (10 if a.instrument in ("NQ", "MNQ") else 1)
+        alle = ict.setups(df) + (retest.setups(df, waende, zg, cvd_reihe, tol) if waende else [])
+        heute = sorted((s for s in alle if s.zeit.date() == jetzt.date()), key=lambda s: s.idx)
         print(f"\nSETUPS HEUTE ({jetzt:%d.%m.%Y}, CVD: {cvd_art}): {len(heute)}")
         for s in heute:
             sig, grund = signale.bewerte(s, df, a.instrument, waechter, lage, profil, gex, cvd_reihe, cvd_art)

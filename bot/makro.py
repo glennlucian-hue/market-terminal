@@ -77,6 +77,8 @@ def bewerte(t: pd.Timestamp, reihen: dict[str, pd.Series], schwelle: float = 1.5
     else:
         m.hinweise.append("VIX9D/VIX fehlt")
 
+    if vix is not None and float(vix.iloc[-1]) >= 25:
+        m.gruende.append(f"VIX {float(vix.iloc[-1]):.0f}: hohe Vola, Fortsetzungs-Setups bevorzugen")
     if vix is not None:
         a = _tagesaenderung(vix)
         if a:

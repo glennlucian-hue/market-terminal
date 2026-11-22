@@ -134,3 +134,12 @@ def test_backtest_laeuft_auf_zufallsdaten():
     e = backtest.lauf(df, "QQQ", mit_makro=False)
     k = e.kennzahlen()
     assert k["trades"] == len(e.trades) and all(t["grund"] in ("Stop", "Ziel", "Zeit", "Datenende") for t in e.trades)
+
+
+def test_break_und_retest_short():
+    from bot import retest
+    df = kerzen([(102, 102.5, 101, 101.5), (101.5, 101.6, 99, 99.2), (99.2, 99.5, 98.5, 99),
+                 (99, 100.1, 98.8, 99.3), (99.3, 99.4, 97, 97.5)])
+    cvd = pd.Series([0, -5, -8, -9, -15], index=df.index)
+    s = retest.setups(df, [100, 95], zero_gamma=105, cvd=cvd, toleranz=0.2)
+    assert len(s) == 1 and s[0].richtung == "short" and s[0].idx == 3 and s[0].gegenseite == [95]
