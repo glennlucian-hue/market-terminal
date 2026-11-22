@@ -128,6 +128,21 @@ def bewerte(setup: Setup, df: pd.DataFrame, instrument: str, waechter: RisikoWae
         else:
             warn.append("Trade gegen das Gamma-Regime")
 
+    # EMA 21/50: Trend wirkt mit + Abpraller (Sweep-Docht berührt EMA 21/50, Schluss wieder auf der Trendseite)
+    k = df["Close"].iloc[:setup.idx + 1]
+    e21, e50 = (float(k.ewm(span=n, adjust=False).mean().iloc[-1]) for n in (21, 50))
+    vz = 1 if r == "long" else -1
+    if vz * (e21 - e50) > 0:
+        punkte += 0.5
+        gruende.append(f"EMA 21 {'über' if vz > 0 else 'unter'} EMA 50: Trend wirkt mit")
+    else:
+        warn.append("gegen den EMA-Trend")
+    for n, e in ((21, e21), (50, e50)):
+        if min(setup.extrem, setup.einstieg) <= e <= max(setup.extrem, setup.einstieg):
+            punkte += 0.5
+            gruende.append(f"Abpraller an EMA {n} ({e:.2f})")
+            break
+
     if punkte < min_punkte:
         return None, f"Qualität {punkte:.1f} < {min_punkte}"
     g = waechter.positionsgroesse(setup.einstieg, stop, instrument, faktor)

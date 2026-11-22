@@ -10,7 +10,7 @@ Makro-Filter ──► darf ich in diese Richtung?          (VIX9D/VIX, NQ-VIX-K
      │
 ICT-Auslöser ──► Turtle Soup (Sweep) + CISD           (Swing-Hoch/-Tief, Vortages-Hoch/-Tief)
      │
-Bestätigung  ──► CVD-Divergenz, Sweep an VAL/VAH, Gamma-Regime     -> Qualitätspunkte
+Bestätigung  ──► CVD-Divergenz, Sweep an VAL/VAH, Gamma-Regime, EMA 21/50 (Trend + Abpraller) -> Qualitätspunkte
      │
 Ziel/Stop    ──► Stop hinter Sweep-Extrem; Ziel = nächste Gegen-Liquidität / POC / VAH / VAL / GEX-Wand, CRV ≥ 2
      │
