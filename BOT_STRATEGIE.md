@@ -13,6 +13,7 @@ ICT-Auslöser ──► Turtle Soup (Sweep) + CISD           (Swing-Hoch/-Tief, 
 Bestätigung  ──► CVD-Divergenz, Sweep an VAL/VAH, Gamma-Regime, EMA 21/50 (Trend + Abpraller) -> Qualitätspunkte
      │
 Break & Retest ─► unter Zero Gamma: Bruch einer Gamma-Wand, Retest, CVD in Trendrichtung (`--wände` oder GEXBot)
+Break & Retest ─► unter Zero Gamma: Bruch einer Gamma-Wand, Retest, CVD in Trendrichtung (`--wände` oder GEXBot)
 Ziel/Stop    ──► Stop hinter Sweep-Extrem; Ziel = nächste Gegen-Liquidität / POC / VAH / VAL / GEX-Wand, CRV ≥ 2
      │
 Risiko       ──► 1 % je Trade, 3 % Tagesgrenze, max. 3 Trades, Pause nach 2 Verlusten, Not-Aus
