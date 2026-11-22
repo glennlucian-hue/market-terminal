@@ -35,3 +35,8 @@ Trading-Bot noch fehlt. Sie ist als Ausgangspunkt für einen eigenen Chat gedach
 - GEXBot-Daten nur für private Nutzung; keine Weitergabe (Bedingungen von GEXBot).
 - Der Nutzer arbeitet bei einer Bank: interne Regeln für private Wertpapiergeschäfte vorab klären.
 - Automatischer Handel kann schnell Geld kosten (Fehler, Ausfälle, Hebel). Darum: Signale → Papier-Konto → kleine Beträge.
+
+## Umgesetzt (22.11.2026)
+Erster Signal-Bot im Ordner `bot/`, Start mit `python bot_signale.py`. Er kombiniert ICT (Turtle Soup + CISD),
+Orderflow (CVD, Footprint, Big Trades), TPO, Makro (VIX9D/VIX, NQ-VIX-Korrelation, 2Y, 10Y, DXY, $TICK), GEX
+und feste Risikoregeln, mit einem Kerzen-Backtest. Regeln, Datenlage und erste Ergebnisse: siehe `BOT_STRATEGIE.md`.
