@@ -69,7 +69,7 @@ Schritt ist ein Backtest auf **1-Sekunden- oder Trade-Daten** (GEXBot-Historie, 
 ## Nächste Schritte
 1. $TICK und echtes Delta anbinden (IBKR-Papier-Konto liefert beides; `ib_async` als Python-Bibliothek).
 2. Backtest mit Trade-Daten und Orderflow-Bestätigung als Pflicht statt Bonus vergleichen.
-3. Papier-Handel: Bot läuft dauerhaft (PC/kleiner Server), Signal per Push (z. B. Telegram), Ausführung von Hand.
+3. Papier-Handel: `python bot_signale.py --live 5` (fertig). Neue Signale gehen nach `signale_journal.csv` und, mit TELEGRAM_TOKEN + TELEGRAM_CHAT in `.env`, aufs Handy. Ausführung von Hand.
 4. Erst nach mehreren Wochen stabiler Papier-Ergebnisse: Ausführung über IBKR-API, mit Not-Aus und Tagesgrenze im Broker.
 
 > Nur Vorschläge, keine Anlageberatung. Vor privatem Handel die internen Regeln der Bank klären.

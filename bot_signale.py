@@ -6,14 +6,16 @@ Benutzung:
     python bot_signale.py --backtest --tage 55      -> Backtest über die letzten 55 Tage
     python bot_signale.py --symbol QQQ --instrument QQQ --konto 5000
     python bot_signale.py --ohne-makro              -> Makro-Filter aus (zum Vergleich im Backtest)
+    python bot_signale.py --live 5                  -> Papier-Betrieb: alle 5 Min., Journal + Telegram
 Not-Aus: Datei NOTAUS im Projektordner anlegen.
 """
 import argparse
 import sys
+import time
 
 import pandas as pd
 
-from bot import backtest, daten, ict, makro, orderflow, signale, tpo
+from bot import backtest, daten, journal, ict, makro, orderflow, signale, tpo
 from bot.risiko_regeln import INSTRUMENTE, Regeln, RisikoWaechter
 
 
@@ -31,6 +33,7 @@ def main() -> int:
     p.add_argument("--gex", default="NDX", help="GEXBot-Ticker (nur mit GEXBOT_API_KEY)")
     p.add_argument("--backtest", action="store_true")
     p.add_argument("--ohne-makro", action="store_true")
+    p.add_argument("--live", type=int, default=0, metavar="MIN", help="alle MIN Minuten neu prüfen, neue Signale ins Journal")
     a = p.parse_args()
 
     try:
@@ -40,52 +43,66 @@ def main() -> int:
         pass
 
     regeln = Regeln(konto=a.konto, risiko_pro_trade=a.risiko, min_rr=a.min_rr)
-    print(f"Lade {a.symbol} ({a.intervall}, {a.tage} Tage) ...")
-    df = daten.kerzen(a.symbol, a.intervall, a.tage)
-    reihen = {} if a.ohne_makro else daten.makro_reihen(a.intervall, a.tage)
-    gex, gex_hinweis = daten.gex_levels(a.gex)
-    if gex_hinweis:
-        print(f"  Hinweis: {gex_hinweis}")
+    gesehen = set()
+    while True:
+        print(f"Lade {a.symbol} ({a.intervall}, {a.tage} Tage) ...")
+        try:
+            df = daten.kerzen(a.symbol, a.intervall, a.tage)
+        except Exception as e:
+            if not a.live:
+                raise
+            print(f"  Daten fehlen ({e}), neuer Versuch später")
+            time.sleep(a.live * 60)
+            continue
+        reihen = {} if a.ohne_makro else daten.makro_reihen(a.intervall, a.tage)
+        gex, gex_hinweis = daten.gex_levels(a.gex)
+        if gex_hinweis:
+            print(f"  Hinweis: {gex_hinweis}")
 
-    if a.backtest:
-        e = backtest.lauf(df, a.instrument, regeln, reihen, None, mit_makro=not a.ohne_makro)
-        print("\nBACKTEST (Kerzen, vorsichtige Annahmen – kein Beweis):")
-        for k, v in e.kennzahlen().items():
-            print(f"  {k:15} {v}")
-        print("  abgelehnte Setups:", dict(sorted(e.abgelehnt.items(), key=lambda x: -x[1])))
-        if e.trades:
-            print("\n" + pd.DataFrame(e.trades).tail(15).to_string(index=False))
-        return 0
+        if a.backtest:
+            e = backtest.lauf(df, a.instrument, regeln, reihen, None, mit_makro=not a.ohne_makro)
+            print("\nBACKTEST (Kerzen, vorsichtige Annahmen – kein Beweis):")
+            for k, v in e.kennzahlen().items():
+                print(f"  {k:15} {v}")
+            print("  abgelehnte Setups:", dict(sorted(e.abgelehnt.items(), key=lambda x: -x[1])))
+            if e.trades:
+                print("\n" + pd.DataFrame(e.trades).tail(15).to_string(index=False))
+            return 0
 
-    jetzt = df.index[-1]
-    lage = None if a.ohne_makro else makro.bewerte(jetzt, {"basis": df["Close"], **reihen})
-    if lage:
-        print(f"\nMAKRO {lage.bias.upper()} ({lage.punkte:+.1f}), Grössenfaktor {lage.groessen_faktor}")
-        for g in lage.gruende:
-            print(f"  · {g}")
-        for h in lage.hinweise:
-            print(f"  ? {h}")
-        print(f"  Werte: {lage.werte}")
-    profil = tpo.vortages_profil(df, jetzt, INSTRUMENTE[a.instrument]["tick"])
-    if profil:
-        print(f"\nTPO Vortag: POC {profil['poc']:.2f} · VAH {profil['vah']:.2f} · VAL {profil['val']:.2f}"
-              f"{' · Poor High' if profil['poor_high'] else ''}{' · Poor Low' if profil['poor_low'] else ''}")
-    if gex:
-        print(f"GEX {a.gex}: Zero Gamma {gex.get('zero_gamma')} · Call-Wand {gex.get('major_pos')} · "
-              f"Put-Wand {gex.get('major_neg')}")
+        jetzt = df.index[-1]
+        lage = None if a.ohne_makro else makro.bewerte(jetzt, {"basis": df["Close"], **reihen})
+        if lage:
+            print(f"\nMAKRO {lage.bias.upper()} ({lage.punkte:+.1f}), Grössenfaktor {lage.groessen_faktor}")
+            for g in lage.gruende:
+                print(f"  · {g}")
+            for h in lage.hinweise:
+                print(f"  ? {h}")
+            print(f"  Werte: {lage.werte}")
+        profil = tpo.vortages_profil(df, jetzt, INSTRUMENTE[a.instrument]["tick"])
+        if profil:
+            print(f"\nTPO Vortag: POC {profil['poc']:.2f} · VAH {profil['vah']:.2f} · VAL {profil['val']:.2f}"
+                  f"{' · Poor High' if profil['poor_high'] else ''}{' · Poor Low' if profil['poor_low'] else ''}")
+        if gex:
+            print(f"GEX {a.gex}: Zero Gamma {gex.get('zero_gamma')} · Call-Wand {gex.get('major_pos')} · "
+                  f"Put-Wand {gex.get('major_neg')}")
 
-    cvd_reihe, cvd_art = orderflow.cvd(df)
-    waechter = RisikoWaechter(regeln)
-    heute = [s for s in ict.setups(df) if s.zeit.date() == jetzt.date()]
-    print(f"\nSETUPS HEUTE ({jetzt:%d.%m.%Y}, CVD: {cvd_art}): {len(heute)}")
-    for s in heute:
-        sig, grund = signale.bewerte(s, df, a.instrument, waechter, lage, profil, gex, cvd_reihe, cvd_art)
-        if sig:
-            print("\n" + sig.text(a.instrument))
-        else:
-            print(f"  {s.zeit:%H:%M} {s.richtung:5} verworfen: {grund}")
-    print("\nNur Vorschläge, keine Anlageberatung. Daten verzögert. Erst im Papier-Konto prüfen.")
-    return 0
+        cvd_reihe, cvd_art = orderflow.cvd(df)
+        waechter = RisikoWaechter(regeln)
+        heute = [s for s in ict.setups(df) if s.zeit.date() == jetzt.date()]
+        print(f"\nSETUPS HEUTE ({jetzt:%d.%m.%Y}, CVD: {cvd_art}): {len(heute)}")
+        for s in heute:
+            sig, grund = signale.bewerte(s, df, a.instrument, waechter, lage, profil, gex, cvd_reihe, cvd_art)
+            if sig:
+                print("\n" + sig.text(a.instrument))
+                if a.live and sig.zeit not in gesehen:
+                    gesehen.add(sig.zeit)
+                    journal.melde(sig, a.instrument)
+            else:
+                print(f"  {s.zeit:%H:%M} {s.richtung:5} verworfen: {grund}")
+        print("\nNur Vorschläge, keine Anlageberatung. Daten verzögert. Erst im Papier-Konto prüfen.")
+        if not a.live:
+            return 0
+        time.sleep(a.live * 60)
 
 
 if __name__ == "__main__":
